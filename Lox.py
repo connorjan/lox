@@ -4,21 +4,29 @@ import argparse
 import os
 import sys
 
+import AstPrinter
 import Scanner
+import Parser
+from Token import Token
+from TokenType import TokenType
 
 class Lox:
     # Static variables
     hadError = False
 
     @classmethod
-    def main(cls, args):
+    def main(cls, args) -> None:
         if args.script:
             cls.runFile(args.script)
         else:
+            if not os.name == "nt":
+                # If not running on Windows add support for GNU readline
+                import readline
+                readline.parse_and_bind("tab: complete")
             cls.runPrompt()
 
     @classmethod
-    def runFile(cls, file):
+    def runFile(cls, file) -> None:
         data = file.read()
         cls.run(data)
 
@@ -26,7 +34,7 @@ class Lox:
             sys.exit(1)
 
     @classmethod
-    def runPrompt(cls):
+    def runPrompt(cls) -> None:
         while True:
             try:
                 data = input(">> ")
@@ -37,19 +45,31 @@ class Lox:
                 break
 
     @classmethod
-    def run(cls, source):
+    def run(cls, source: str) -> None:
         scanner = Scanner.Scanner(source)
         tokens = scanner.scanTokens()
 
-        for token in tokens:
-            print(token)
+        parser = Parser.Parser(tokens)
+        expression = parser.parse()
+
+        if cls.hadError:
+            return
+        else:
+            print(AstPrinter.AstPrinter().print(expression))
 
     @classmethod
-    def error(cls, line, message):
+    def lineError(cls, line: int, message: str) -> None:
         cls.report(line, "", message)
 
     @classmethod
-    def report(cls, line, where, message):
+    def tokenError(cls, token: Token, message: str) -> None:
+        if token.type == TokenType.EOF:
+            cls.report(token.line, "at end", message)
+        else:
+            cls.report(token.line, f"at '{token.lexeme}'", message)
+
+    @classmethod
+    def report(cls, line: int, where: str, message: str) -> None:
         print(f"[line {line}] Error {where}: {message}")
         cls.hadError = True
 

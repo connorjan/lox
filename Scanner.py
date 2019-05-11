@@ -1,4 +1,4 @@
-from Lox import Lox
+import Lox
 from TokenType import TokenType
 from Token import Token
 
@@ -63,11 +63,15 @@ class Scanner:
         elif c == '-': self.addToken(TokenType.MINUS)
         elif c == '+': self.addToken(TokenType.PLUS)
         elif c == ';': self.addToken(TokenType.SEMICOLON)
-        elif c == '*': self.addToken(TokenType.STAR)
+        elif c == '&': self.addToken(TokenType.AMPER)
+        elif c == '|': self.addToken(TokenType.BAR)
+        elif c == '~': self.addToken(TokenType.TILDE)
+        elif c == '^': self.addToken(TokenType.CARET)
+        elif c == '*': self.addToken(TokenType.STAR_STAR if self.match('*') else TokenType.STAR)
         elif c == '!': self.addToken(TokenType.BANG_EQUAL if self.match('=') else TokenType.BANG)
         elif c == '=': self.addToken(TokenType.EQUAL_EQUAL if self.match('=') else TokenType.EQUAL)
-        elif c == '<': self.addToken(TokenType.LESS_EQUAL if self.match('=') else TokenType.LESS)
-        elif c == '>': self.addToken(TokenType.GREATER_EQUAL if self.match('=') else TokenType.GREATER)
+        elif c == '<': self.addToken(TokenType.LESS_EQUAL if self.match('=') else TokenType.LESS_LESS if self.match('<') else TokenType.LESS)
+        elif c == '>': self.addToken(TokenType.GREATER_EQUAL if self.match('=') else TokenType.GREATER_GREATER if self.match('>') else TokenType.GREATER)
         elif c == '/':
             if self.match('/'):
                 # If the next character is a '/' consume the rest of the line
@@ -96,7 +100,7 @@ class Scanner:
                 # Look for an identifier
                 self.identifier()
             else:
-                Lox.error(self.line, f"Unexpected character: {repr(c)}")
+                Lox.Lox.lineError(self.line, f"Unexpected character: {repr(c)}")
 
     def advance(self) -> str:
         self.current += 1
@@ -139,7 +143,7 @@ class Scanner:
 
         # If we find an unterminated string
         if self.atEnd():
-            Lox.error(self.line, "Unterminated string")
+            Lox.Lox.lineError(self.line, "Unterminated string")
             return
 
         # Get the closing '"'

@@ -15,6 +15,10 @@ class TokenType(Enum):
     SEMICOLON = auto()
     SLASH = auto()
     STAR = auto()
+    AMPER = auto()
+    BAR = auto()
+    TILDE = auto()
+    CARET = auto()
 
     # One or two character tokens
     BANG = auto()
@@ -23,8 +27,11 @@ class TokenType(Enum):
     EQUAL_EQUAL = auto()
     GREATER = auto()
     GREATER_EQUAL = auto()
+    GREATER_GREATER = auto()
     LESS = auto()
     LESS_EQUAL = auto()
+    LESS_LESS = auto()
+    STAR_STAR = auto()
 
     # Literals
     IDENTIFIER = auto()
