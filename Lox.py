@@ -7,12 +7,17 @@ import sys
 import AstPrinter
 import Scanner
 import Parser
+import Interpreter
+from RuntimeException import RuntimeException
 from Token import Token
 from TokenType import TokenType
 
 class Lox:
     # Static variables
     hadError = False
+    hadRuntimeError = False
+
+    interpreter = Interpreter.Interpreter()
 
     @classmethod
     def main(cls, args) -> None:
@@ -30,7 +35,7 @@ class Lox:
         data = file.read()
         cls.run(data)
 
-        if cls.hadError:
+        if cls.hadError or cls.hadRuntimeError:
             sys.exit(1)
 
     @classmethod
@@ -55,7 +60,13 @@ class Lox:
         if cls.hadError:
             return
         else:
-            print(AstPrinter.AstPrinter().print(expression))
+            # print(AstPrinter.AstPrinter().print(expression))
+            cls.interpreter.interpret(expression)
+
+    @classmethod
+    def report(cls, line: int, where: str, message: str) -> None:
+        print(f"[line {line}] Error {where}: {message}")
+        cls.hadError = True
 
     @classmethod
     def lineError(cls, line: int, message: str) -> None:
@@ -69,9 +80,9 @@ class Lox:
             cls.report(token.line, f"at '{token.lexeme}'", message)
 
     @classmethod
-    def report(cls, line: int, where: str, message: str) -> None:
-        print(f"[line {line}] Error {where}: {message}")
-        cls.hadError = True
+    def runtimeError(cls, error: RuntimeException):
+        print(f"{error.__class__.__name__}: {error.message}\n[line {error.token.line}]")
+        hadRuntimeError = True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Lox interpreter")

@@ -89,7 +89,7 @@ class Scanner:
             else:
                 # Otherwise it is a regular token
                 self.addToken(TokenType.SLASH)
-        elif c == ' ' or c == '\r' or c == '\t': pass # Consume white space
+        elif c == ' ' or c == '\r' or c == '\t': pass
         elif c == '\n': self.line += 1 # Increment the line
         elif c == '"': self.string() # Get the string
         else:
@@ -158,14 +158,30 @@ class Scanner:
         while self.peek().isdigit():
             self.advance()
 
-        if self.peek() == '.' and self.peekNext().isdigit():
-            # If we hit a DOT followed by a number consume the dot
+        if self.peek().lower() in ('.', 'b', 'o', 'x') and self.peekNext().isdigit():
+            # If we hit a dot, b, o, or x, followed by a number consume it
             self.advance()
             while self.peek().isdigit():
                 # Consume the rest of the digits
                 self.advance()
 
-        self.addToken(TokenType.NUMBER, float(self.source[self.start:self.current]))
+        number = self.source[self.start:self.current]
+
+        if '.' in number:
+            # If there is a dot in the number then it becomes a float
+            self.addToken(TokenType.FLOAT, float(number))
+        elif 'b' in number:
+            # Parse the number as binary
+            self.addToken(TokenType.INT, int(number, 2))
+        elif 'o' in number:
+            # Parse the number as octal
+            self.addToken(TokenType.INT, int(number, 8))
+        elif 'x' in number:
+            # Parse the number as hex
+            self.addToken(TokenType.INT, int(number, 16))
+        else:
+            # Otherwise it is a decimal
+            self.addToken(TokenType.INT, int(number))
 
     def identifier(self):
         while self.peek().isalnum():

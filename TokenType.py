@@ -36,7 +36,8 @@ class TokenType(Enum):
     # Literals
     IDENTIFIER = auto()
     STRING = auto()
-    NUMBER = auto()
+    INT = auto()
+    FLOAT = auto()
 
     # Keywords
     AND = auto()

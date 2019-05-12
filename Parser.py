@@ -12,8 +12,9 @@ class Parser:
     """ Class to implement the AST parser """
 
     """
-    primary        := NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")" ;
-    unary          := ( "!" | "-" ) unary | primary ;
+    primary        := INT | FLOAT | STRING | "false" | "true" | "nil" | "(" expression ")" ;
+    exp            := primary ( "**" primary )* ;
+    unary          := ( "~" | !" | "-" ) unary | exp ;
     multiplication := unary ( ( "/" | "*" ) unary )* ;
     addition       := multiplication ( ( "-" | "+" ) multiplication )* ;
     bitshift       := addition ( ( ">>" | "<<" ) addition )* ;
@@ -104,7 +105,7 @@ class Parser:
             return Expr.Literal(False)
         elif self.match(TokenType.NIL):
             return Expr.Literal(None)
-        elif self.match(TokenType.NUMBER, TokenType.STRING):
+        elif self.match(TokenType.INT, TokenType.FLOAT, TokenType.STRING):
             return Expr.Literal(self.previous().literal)
         elif self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
@@ -113,14 +114,23 @@ class Parser:
         else:
             raise self.error(self.peek(), "Expected expression")
 
+    def exp(self) -> Expr.Expr:
+        """ Parses an exponent expression """
+        expr = self.primary()
+        while self.match(TokenType.STAR_STAR):
+            operator = self.previous()
+            right = self.primary()
+            expr = Expr.Binary(expr, operator, right)
+        return expr
+
     def unary(self) -> Expr.Expr:
         """ Parses a unary expression """
-        if self.match(TokenType.BANG, TokenType.MINUS):
+        if self.match(TokenType.BANG, TokenType.MINUS, TokenType.TILDE):
             operator = self.previous()
             right = self.unary()
             return Expr.Unary(operator, right)
         else:
-            return self.primary()
+            return self.exp()
 
     def multiplication(self) -> Expr.Expr:
         """ Parses a binary expression of multiplication precedence or higher"""
