@@ -1,24 +1,44 @@
 import Lox
 import Expr
+import Stmt
+from Environment import Environment
 from RuntimeException import RuntimeException
 from TokenType import TokenType
 from Token import Token
-from typing import Tuple
+from typing import List, Tuple
 
 class Interpreter:
     """ Class to interpret expressions """
 
-    def interpret(self, expression: Expr) -> None:
-        """ Interpret an expression and print the result """
+    def __init__(self):
+        self.environment = Environment()
+
+    def interpret(self, statements: List[Stmt.Stmt]) -> None:
+        """ Interpret a list of statements """
         try:
-            value = self.evaluate(expression)
-            print(self.toString(value))
+            for statement in statements:
+                self.execute(statement)
         except RuntimeException as error:
             Lox.Lox.runtimeError(error)
 
     # Helper methods
     def evaluate(self, expr: Expr.Expr) -> object:
+        """ Evaluates the value of an expression """
         return expr.accept(self)
+
+    def execute(self, stmt: Stmt.Stmt) -> None:
+        """ Executes a statement """
+        stmt.accept(self)
+
+    def executeBlock(self, statements: List[Stmt.Stmt], environment: Environment) -> None:
+        """ Executes a block of statements """
+        previous = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
 
     def toBool(self, obj: object) -> bool:
         """ Lox's rules of how objects are converted to bools are the same as Python """
@@ -47,7 +67,12 @@ class Interpreter:
             msg = f"unsupported operand type(s) for {operator.lexeme}: '{type(left).__name__}' and '{type(right).__name__}'"
             raise RuntimeException(operator, msg)
 
-    # Visitor methods
+    # Expr visitor methods
+    def visitAssignExpr(self, expr: Expr.Assign) -> object:
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
+
     def visitLiteralExpr(self, expr: Expr.Literal) -> object:
         return expr.value
 
@@ -131,3 +156,24 @@ class Interpreter:
 
         # Should not be reachable
         raise Exception("Code should not be reachable")
+
+    def visitVariableExpr(self, expr: Expr.Variable) -> None:
+        return self.environment.get(expr.name)
+
+    # Stmt visitor methods
+    def visitBlockStmt(self, stmt: Stmt.Block) -> None:
+        self.executeBlock(stmt.statements, Environment(self.environment))
+
+    def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
+        self.evaluate(stmt.expression)
+
+    def visitPrintStmt(self, stmt: Stmt.Print) -> None:
+        value = self.evaluate(stmt.expression)
+        print(self.toString(value))
+
+    def visitVarStmt(self, stmt: Stmt.Var) -> None:
+        value = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
+

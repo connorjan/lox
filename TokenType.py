@@ -13,8 +13,6 @@ class TokenType(Enum):
     MINUS = auto()
     PLUS = auto()
     SEMICOLON = auto()
-    SLASH = auto()
-    STAR = auto()
     AMPER = auto()
     BAR = auto()
     TILDE = auto()
@@ -31,6 +29,8 @@ class TokenType(Enum):
     LESS = auto()
     LESS_EQUAL = auto()
     LESS_LESS = auto()
+    SLASH = auto()
+    STAR = auto()
     STAR_STAR = auto()
 
     # Literals

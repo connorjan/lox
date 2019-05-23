@@ -1,8 +1,8 @@
 import Lox
 import Expr
+import Stmt
 from TokenType import TokenType
 from Token import Token
-
 from typing import List
 
 class ParserException(Exception):
@@ -12,7 +12,8 @@ class Parser:
     """ Class to implement the AST parser """
 
     """
-    primary        := INT | FLOAT | STRING | "false" | "true" | "nil" | "(" expression ")" ;
+    // Expression grammar from highest precedence to lowest
+    primary        := INT | FLOAT | STRING | "false" | "true" | "nil" | "(" expression ")" | IDENTIFIER ;
     exp            := primary ( "**" primary )* ;
     unary          := ( "~" | !" | "-" ) unary | exp ;
     multiplication := unary ( ( "/" | "*" ) unary )* ;
@@ -21,9 +22,19 @@ class Parser:
     bitand         := bitshift ("&" bitshift)* ;
     bitxor         := bitand ("^" bitand)* ;
     bitor          := bitxor ("|" bitxor)* ;
-    comparison     := bitshift ( ( ">" | ">=" | "<" | "<=" ) bitshift )* ;
+    comparison     := bitor ( ( ">" | ">=" | "<" | "<=" ) bitor )* ;
     equality       := comparison ( ( "!=" | "==" ) comparison )* ;
-    expression     := equality ;
+    assignment     := IDENTIFIER "=" assignment | equality ;
+    expression     := assignment ;
+
+    // Statement grammar from highest precedence to lowest
+    exprStmt       := expression ";" ;
+    printStmt      := "print" expression ";" ;
+    block          := "{" declaration* "}" ;
+    statement      := exprStmt | printStmt | block ;
+    varDecl        := "var" IDENTIFIER ( "=" expression )? ";" ;
+    declaration    := varDecl | statement ;
+    program        := declaration* EOF ;
     """
 
     def __init__(self, tokens: List[Token]):
@@ -32,10 +43,10 @@ class Parser:
 
     def parse(self) -> Expr.Expr:
         """ Parse expressions into a syntax tree """
-        try:
-            return self.expression()
-        except ParserException as error:
-            return None
+        statements: List[Stmt.Stmt] = []
+        while not self.atEnd():
+            statements.append(self.declaration())
+        return statements
 
     # Some helper methods
     def peek(self) -> Token:
@@ -111,6 +122,8 @@ class Parser:
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expected closing ')' after expression")
             return Expr.Grouping(expr)
+        elif self.match(TokenType.IDENTIFIER):
+            return Expr.Variable(self.previous())
         else:
             raise self.error(self.peek(), "Expected expression")
 
@@ -204,6 +217,64 @@ class Parser:
             expr = Expr.Binary(expr, operator, right)
         return expr
 
+    def assignment(self) -> Expr.Expr:
+        """ Parses an assignment expression """
+        expr = self.equality()
+        if self.match(TokenType.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+            if isinstance(expr, Expr.Variable):
+                return Expr.Assign(expr.name, value)
+            else:
+                self.error(equals, "Invalid assignment target")
+        else:
+            return expr
+
     def expression(self) -> Expr.Expr:
-        """ Parses an expression starting with equality (lowest precendence) and works up """
-        return self.equality()
+        """ Parses an expression starting with the lowest precedence and works up """
+        return self.assignment()
+
+    # Methods to deal with statements
+    def printStatement(self) -> Stmt.Stmt:
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value")
+        return Stmt.Print(value)
+
+    def expressionStatement(self) -> Stmt.Stmt:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after expression")
+        return Stmt.Expression(expr)
+
+    def block(self) -> List[Stmt.Stmt]:
+        statements = []
+        while not self.check(TokenType.RIGHT_BRACE) and not self.atEnd():
+            statements.append(self.declaration())
+        self.consume(TokenType.RIGHT_BRACE, "Expected '}' after block")
+        return statements
+
+    def statement(self) -> Stmt.Stmt:
+        if self.match(TokenType.PRINT):
+            return self.printStatement()
+        elif self.match(TokenType.LEFT_BRACE):
+            return Stmt.Block(self.block())
+        else:
+            return self.expressionStatement()
+
+    def varDeclaration(self) -> Stmt.Stmt:
+        name = self.consume(TokenType.IDENTIFIER, "Expected variable name")
+        initializer = None
+        if self.match(TokenType.EQUAL):
+            initializer = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expected ';' after variable declaration")
+        return Stmt.Var(name, initializer)
+
+    def declaration(self) -> Stmt.Stmt:
+        try:
+            if self.match(TokenType.VAR):
+                return self.varDeclaration()
+            else:
+                return self.statement()
+        except ParserException as error:
+            self.synchronize()
+            return None

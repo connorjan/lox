@@ -5,18 +5,16 @@ import os
 import sys
 
 import AstPrinter
-import Scanner
 import Parser
+import Scanner
 import Interpreter
+from LoxError import LoxError
 from RuntimeException import RuntimeException
 from Token import Token
 from TokenType import TokenType
 
 class Lox:
-    # Static variables
-    hadError = False
-    hadRuntimeError = False
-
+    # Static properties
     interpreter = Interpreter.Interpreter()
 
     @classmethod
@@ -35,7 +33,7 @@ class Lox:
         data = file.read()
         cls.run(data)
 
-        if cls.hadError or cls.hadRuntimeError:
+        if LoxError.hadError or LoxError.hadRuntimeError:
             sys.exit(1)
 
     @classmethod
@@ -44,7 +42,7 @@ class Lox:
             try:
                 data = input(">> ")
                 cls.run(data)
-                hadError = False
+                LoxError.hadError = False
             except (KeyboardInterrupt, EOFError):
                 print("")
                 break
@@ -55,18 +53,17 @@ class Lox:
         tokens = scanner.scanTokens()
 
         parser = Parser.Parser(tokens)
-        expression = parser.parse()
+        statements = parser.parse()
 
-        if cls.hadError:
+        if LoxError.hadError:
             return
         else:
-            # print(AstPrinter.AstPrinter().print(expression))
-            cls.interpreter.interpret(expression)
+            cls.interpreter.interpret(statements)
 
     @classmethod
     def report(cls, line: int, where: str, message: str) -> None:
         print(f"[line {line}] Error {where}: {message}")
-        cls.hadError = True
+        LoxError.hadError = True
 
     @classmethod
     def lineError(cls, line: int, message: str) -> None:
@@ -82,7 +79,7 @@ class Lox:
     @classmethod
     def runtimeError(cls, error: RuntimeException):
         print(f"{error.__class__.__name__}: {error.message}\n[line {error.token.line}]")
-        hadRuntimeError = True
+        LoxError.hadRuntimeError = True
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Lox interpreter")
