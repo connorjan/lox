@@ -24,14 +24,19 @@ class Parser:
     bitor          := bitxor ("|" bitxor)* ;
     comparison     := bitor ( ( ">" | ">=" | "<" | "<=" ) bitor )* ;
     equality       := comparison ( ( "!=" | "==" ) comparison )* ;
-    assignment     := IDENTIFIER "=" assignment | equality ;
+    logic_and      := equality ( "and" equality )* ;
+    logic_or       := logic_and ( "or" logic_and )* ;
+    assignment     := IDENTIFIER "=" assignment | logic_or ;
     expression     := assignment ;
 
     // Statement grammar from highest precedence to lowest
     exprStmt       := expression ";" ;
+    forStmt        := "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
+    ifStmt         := "if" "(" expression ")" statement ( "else" statement )? ;
     printStmt      := "print" expression ";" ;
+    whiteStmt      := "while" "(" expression ")" statement ;
     block          := "{" declaration* "}" ;
-    statement      := exprStmt | printStmt | block ;
+    statement      := exprStmt | ifStmt | printStmt | whileStmt | block ;
     varDecl        := "var" IDENTIFIER ( "=" expression )? ";" ;
     declaration    := varDecl | statement ;
     program        := declaration* EOF ;
@@ -217,9 +222,25 @@ class Parser:
             expr = Expr.Binary(expr, operator, right)
         return expr
 
+    def logic_and(self) -> Expr.Expr:
+        expr = self.equality()
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Expr.Logical(expr, operator, right)
+        return expr
+
+    def logic_or(self) -> Expr.Expr:
+        expr = self.logic_and()
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.logic_and()
+            expr = Expr.Logical(expr, operator, right)
+        return expr
+
     def assignment(self) -> Expr.Expr:
         """ Parses an assignment expression """
-        expr = self.equality()
+        expr = self.logic_or()
         if self.match(TokenType.EQUAL):
             equals = self.previous()
             value = self.assignment()
@@ -235,15 +256,84 @@ class Parser:
         return self.assignment()
 
     # Methods to deal with statements
+    def expressionStatement(self) -> Stmt.Stmt:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after expression")
+        return Stmt.Expression(expr)
+
+    def forStatement(self) -> Stmt.Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'")
+
+        # Parse the initializer
+        if self.match(TokenType.SEMICOLON):
+            initializer = None
+        elif self.match(TokenType.VAR):
+            initializer = self.varDeclaration()
+        else:
+            initializer = self.expressionStatement()
+
+        # Parse the condition
+        if not self.check(TokenType.SEMICOLON):
+            # If there is not just a semicolon then parse the expression
+            condition = self.expression()
+        else:
+            condition = None
+        self.consume(TokenType.SEMICOLON, "Expected ';' after 'for' condition")
+
+        # Parse the increment
+        if not self.check(TokenType.RIGHT_PAREN):
+            # If there is not an empty increment expression
+            increment = self.expression()
+        else:
+            increment = None
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'for'")
+
+        # Parse the body
+        body = self.statement()
+
+        # Desugar the for loop
+        if increment is not None:
+            # If there is an increment expression add it to the body
+            body = Stmt.Block([body, Stmt.Expression(increment)])
+
+        if condition is None:
+            # If there is no condition default is True
+            condition = Expr.Literal(True)
+
+        # Convert the body to a while statement
+        body = Stmt.While(condition, body)
+
+        if initializer is not None:
+            # If there is an initializer put it at the beginning of the block
+            body = Stmt.Block([initializer, body])
+
+        return body
+
+    def ifStatement(self) -> Stmt.Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'if' condition")
+
+        thenBranch = self.statement()
+        elseBranch = None
+        if self.match(TokenType.ELSE):
+            elseBranch = self.statement()
+        else:
+            elseBranch = None
+
+        return Stmt.If(condition, thenBranch, elseBranch)
+
     def printStatement(self) -> Stmt.Stmt:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected ';' after value")
         return Stmt.Print(value)
 
-    def expressionStatement(self) -> Stmt.Stmt:
-        expr = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expected ';' after expression")
-        return Stmt.Expression(expr)
+    def whileStatement(self) -> Stmt.Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after 'while' condition")
+        body = self.statement()
+        return Stmt.While(condition, body)
 
     def block(self) -> List[Stmt.Stmt]:
         statements = []
@@ -253,8 +343,14 @@ class Parser:
         return statements
 
     def statement(self) -> Stmt.Stmt:
-        if self.match(TokenType.PRINT):
+        if self.match(TokenType.IF):
+            return self.ifStatement()
+        elif self.match(TokenType.FOR):
+            return self.forStatement()
+        elif self.match(TokenType.PRINT):
             return self.printStatement()
+        elif self.match(TokenType.WHILE):
+            return self.whileStatement()
         elif self.match(TokenType.LEFT_BRACE):
             return Stmt.Block(self.block())
         else:

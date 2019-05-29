@@ -24,12 +24,29 @@ class Expression(Stmt):
     def accept(self, visitor: Any) -> Any:
         return visitor.visitExpressionStmt(self)
 
+class If(Stmt):
+    def __init__(self, condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt):
+        self.condition = condition
+        self.thenBranch = thenBranch
+        self.elseBranch = elseBranch
+
+    def accept(self, visitor: Any) -> Any:
+        return visitor.visitIfStmt(self)
+
 class Print(Stmt):
     def __init__(self, expression: Expr.Expr):
         self.expression = expression
 
     def accept(self, visitor: Any) -> Any:
         return visitor.visitPrintStmt(self)
+
+class While(Stmt):
+    def __init__(self, condition: Expr.Expr, body: Stmt):
+        self.condition = condition
+        self.body = body
+
+    def accept(self, visitor: Any) -> Any:
+        return visitor.visitWhileStmt(self)
 
 class Var(Stmt):
     def __init__(self, name: Token, initializer: Expr.Expr):

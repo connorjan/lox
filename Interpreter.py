@@ -157,6 +157,16 @@ class Interpreter:
         # Should not be reachable
         raise Exception("Code should not be reachable")
 
+    def visitLogicalExpr(self, expr: Expr.Logical) -> None:
+        left = self.evaluate(expr.left)
+        if expr.operator.type == TokenType.OR:
+            if self.toBool(left):
+                return left
+        else:
+            if not self.toBool(left):
+                return left
+        return self.evaluate(expr.right)
+
     def visitVariableExpr(self, expr: Expr.Variable) -> None:
         return self.environment.get(expr.name)
 
@@ -167,9 +177,19 @@ class Interpreter:
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.evaluate(stmt.expression)
 
+    def visitIfStmt(self, stmt: Stmt.If) -> None:
+        if self.toBool(self.evaluate(stmt.condition)):
+            self.execute(stmt.thenBranch)
+        elif stmt.elseBranch is not None:
+            self.execute(stmt.elseBranch)
+
     def visitPrintStmt(self, stmt: Stmt.Print) -> None:
         value = self.evaluate(stmt.expression)
         print(self.toString(value))
+
+    def visitWhileStmt(self, stmt: Stmt.While) -> None:
+        while self.toBool(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
 
     def visitVarStmt(self, stmt: Stmt.Var) -> None:
         value = None

@@ -51,6 +51,7 @@ def main(args):
         "Binary   : left: Expr, operator: Token, right: Expr",
         "Grouping : expression: Expr",
         "Literal  : value: object",
+        "Logical  : left: Expr, operator: Token, right: Expr",
         "Unary    : operator: Token, right: Token",
         "Variable : name: Token"
     ])
@@ -58,7 +59,9 @@ def main(args):
     defineAst(args.output, "Stmt", [
         "Block      : statements: List[Stmt]",
         "Expression : expression: Expr.Expr",
+        "If         : condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt",
         "Print      : expression: Expr.Expr",
+        "While      : condition: Expr.Expr, body: Stmt",
         "Var        : name: Token, initializer: Expr.Expr"
     ],
     imports=[
