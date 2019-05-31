@@ -19,8 +19,9 @@ class Interpreter:
         self.environment = self.globals
 
         # Add builtins
-        self.globals.define("clock", LoxBuiltins.clock())
-        self.globals.define("string", LoxBuiltins.string())
+        self.globals.define("clock", LoxBuiltins.loxClock())
+        self.globals.define("string", LoxBuiltins.loxString())
+        self.globals.define("print", LoxBuiltins.loxPrint())
 
     def interpret(self, statements: List[Stmt.Stmt]) -> None:
         """ Interpret a list of statements """
@@ -217,10 +218,6 @@ class Interpreter:
             self.execute(stmt.thenBranch)
         elif stmt.elseBranch is not None:
             self.execute(stmt.elseBranch)
-
-    def visitPrintStmt(self, stmt: Stmt.Print) -> None:
-        value = self.evaluate(stmt.expression)
-        print(self.toString(value))
 
     def visitReturnStmt(self, stmt: Stmt.Return) -> None:
         if stmt.value is not None:

@@ -62,7 +62,6 @@ def main(args):
         "Expression : expression: Expr.Expr",
         "Function   : name: Token, params: List[Token], body: List[Stmt]",
         "If         : condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt",
-        "Print      : expression: Expr.Expr",
         "Return     : keyword: Token, value: Expr.Expr",
         "While      : condition: Expr.Expr, body: Stmt",
         "Var        : name: Token, initializer: Expr.Expr"

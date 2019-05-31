@@ -42,13 +42,6 @@ class If(Stmt):
     def accept(self, visitor: Any) -> Any:
         return visitor.visitIfStmt(self)
 
-class Print(Stmt):
-    def __init__(self, expression: Expr.Expr):
-        self.expression = expression
-
-    def accept(self, visitor: Any) -> Any:
-        return visitor.visitPrintStmt(self)
-
 class Return(Stmt):
     def __init__(self, keyword: Token, value: Expr.Expr):
         self.keyword = keyword

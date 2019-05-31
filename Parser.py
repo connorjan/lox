@@ -35,11 +35,10 @@ class Parser:
     exprStmt       := expression ";" ;
     forStmt        := "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
     ifStmt         := "if" "(" expression ")" statement ( "else" statement )? ;
-    printStmt      := "print" expression ";" ;
     returnStmt     := "return" expression? ";" ;
     whiteStmt      := "while" "(" expression ")" statement ;
     block          := "{" declaration* "}" ;
-    statement      := exprStmt | ifStmt | printStmt | returnStmt | whileStmt | block ;
+    statement      := exprStmt | ifStmt | returnStmt | whileStmt | block ;
     parameters     := IDENTIFIER ( "," IDENTIFIER )* ;
     function       := IDENTIFIER "(" parameters? ")" block ;
     funDecl        := "fun" function ;
@@ -105,7 +104,6 @@ class Parser:
                                         TokenType.FOR,
                                         TokenType.IF,
                                         TokenType.WHILE,
-                                        TokenType.PRINT,
                                         TokenType.RETURN):
                 return
             else:
@@ -353,11 +351,6 @@ class Parser:
 
         return Stmt.If(condition, thenBranch, elseBranch)
 
-    def printStatement(self) -> Stmt.Stmt:
-        value = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expected ';' after value")
-        return Stmt.Print(value)
-
     def returnStatement(self) -> Stmt.Stmt:
         keyword = self.previous()
         if not self.check(TokenType.SEMICOLON):
@@ -386,8 +379,6 @@ class Parser:
             return self.ifStatement()
         elif self.match(TokenType.FOR):
             return self.forStatement()
-        elif self.match(TokenType.PRINT):
-            return self.printStatement()
         elif self.match(TokenType.RETURN):
             return self.returnStatement()
         elif self.match(TokenType.WHILE):
