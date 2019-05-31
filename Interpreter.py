@@ -1,4 +1,8 @@
+import ControlExceptions
 import Lox
+import LoxBuiltins
+import LoxCallable
+import LoxFunction
 import Expr
 import Stmt
 from Environment import Environment
@@ -11,7 +15,12 @@ class Interpreter:
     """ Class to interpret expressions """
 
     def __init__(self):
-        self.environment = Environment()
+        self.globals = Environment()
+        self.environment = self.globals
+
+        # Add builtins
+        self.globals.define("clock", LoxBuiltins.clock())
+        self.globals.define("string", LoxBuiltins.string())
 
     def interpret(self, statements: List[Stmt.Stmt]) -> None:
         """ Interpret a list of statements """
@@ -72,6 +81,28 @@ class Interpreter:
         value = self.evaluate(expr.value)
         self.environment.assign(expr.name, value)
         return value
+
+    def visitCallExpr(self, expr: Expr.Call) -> object:
+        # Evaluate the callee which could be an identifier or expression
+        callee = self.evaluate(expr.callee)
+
+        # Evaluate each of the arguments
+        arguments = [self.evaluate(arg) for arg in expr.arguments]
+
+        # Make sure the calle is actually callable
+        if not isinstance(callee, LoxCallable.LoxCallable):
+            raise RuntimeException(expr.paren,
+                "Can only call functions and classes")
+
+        # Check the function's arity
+        numArgs = len(arguments)
+        arity = callee.arity()
+        if numArgs != arity:
+            raise RuntimeException(expr.paren,
+                f"Expected {arity} argument{'' if arity == 1 else 's'} but {numArgs} {'was' if numArgs == 1 else 'were'} given ")
+
+        # Call the function and return the result
+        return callee.call(self, arguments)
 
     def visitLiteralExpr(self, expr: Expr.Literal) -> object:
         return expr.value
@@ -177,6 +208,10 @@ class Interpreter:
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.evaluate(stmt.expression)
 
+    def visitFunctionStmt(self, stmt: Stmt.Function) -> None:
+        function = LoxFunction.LoxFunction(stmt, self.environment)
+        self.environment.define(stmt.name.lexeme, function)
+
     def visitIfStmt(self, stmt: Stmt.If) -> None:
         if self.toBool(self.evaluate(stmt.condition)):
             self.execute(stmt.thenBranch)
@@ -187,6 +222,13 @@ class Interpreter:
         value = self.evaluate(stmt.expression)
         print(self.toString(value))
 
+    def visitReturnStmt(self, stmt: Stmt.Return) -> None:
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+        else:
+            value = None
+        raise ControlExceptions.Return(value)
+
     def visitWhileStmt(self, stmt: Stmt.While) -> None:
         while self.toBool(self.evaluate(stmt.condition)):
             self.execute(stmt.body)
@@ -196,4 +238,3 @@ class Interpreter:
         if stmt.initializer is not None:
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
-

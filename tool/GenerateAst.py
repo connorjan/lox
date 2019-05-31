@@ -49,6 +49,7 @@ def main(args):
     defineAst(args.output, "Expr", [
         "Assign   : name: Token, value: Expr",
         "Binary   : left: Expr, operator: Token, right: Expr",
+        "Call     : callee: Expr, paren: Token, arguments: List[Expr]",
         "Grouping : expression: Expr",
         "Literal  : value: object",
         "Logical  : left: Expr, operator: Token, right: Expr",
@@ -59,8 +60,10 @@ def main(args):
     defineAst(args.output, "Stmt", [
         "Block      : statements: List[Stmt]",
         "Expression : expression: Expr.Expr",
+        "Function   : name: Token, params: List[Token], body: List[Stmt]",
         "If         : condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt",
         "Print      : expression: Expr.Expr",
+        "Return     : keyword: Token, value: Expr.Expr",
         "While      : condition: Expr.Expr, body: Stmt",
         "Var        : name: Token, initializer: Expr.Expr"
     ],
