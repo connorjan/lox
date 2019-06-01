@@ -1,4 +1,4 @@
-import ControlExceptions
+import ControlException
 import Lox
 import LoxBuiltins
 import LoxCallable
@@ -203,8 +203,16 @@ class Interpreter:
         return self.environment.get(expr.name)
 
     # Stmt visitor methods
+    def visitBreakStmt(self, stmt: Stmt.Break) -> None:
+        """ Raise the Break control exception to stop execution of a loop """
+        raise ControlException.Break(stmt.keyword)
+
     def visitBlockStmt(self, stmt: Stmt.Block) -> None:
         self.executeBlock(stmt.statements, Environment(self.environment))
+
+    def visitContinueStmt(self, stmt: Stmt.Continue) -> None:
+        """ Raise the Continue control exception to skip the rest of the current loop iteration """
+        raise ControlException.Continue(stmt.keyword)
 
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.evaluate(stmt.expression)
@@ -220,15 +228,21 @@ class Interpreter:
             self.execute(stmt.elseBranch)
 
     def visitReturnStmt(self, stmt: Stmt.Return) -> None:
+        """ Raise the Return control exception to stop execution and return the value """
         if stmt.value is not None:
             value = self.evaluate(stmt.value)
         else:
             value = None
-        raise ControlExceptions.Return(value)
+        raise ControlException.Return(stmt.keyword, value)
 
     def visitWhileStmt(self, stmt: Stmt.While) -> None:
         while self.toBool(self.evaluate(stmt.condition)):
-            self.execute(stmt.body)
+            try:
+                self.execute(stmt.body)
+            except ControlException.Break:
+                break
+            except ControlException.Continue:
+                continue
 
     def visitVarStmt(self, stmt: Stmt.Var) -> None:
         value = None

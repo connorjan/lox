@@ -41,7 +41,9 @@ class TokenType(Enum):
 
     # Keywords
     AND = auto()
+    BREAK = auto()
     CLASS = auto()
+    CONTINUE = auto()
     ELSE = auto()
     FALSE = auto()
     FUN = auto()

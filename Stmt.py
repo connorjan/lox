@@ -10,12 +10,26 @@ import Expr
 class Stmt:
     pass
 
+class Break(Stmt):
+    def __init__(self, keyword: Token):
+        self.keyword = keyword
+
+    def accept(self, visitor: Any) -> Any:
+        return visitor.visitBreakStmt(self)
+
 class Block(Stmt):
     def __init__(self, statements: List[Stmt]):
         self.statements = statements
 
     def accept(self, visitor: Any) -> Any:
         return visitor.visitBlockStmt(self)
+
+class Continue(Stmt):
+    def __init__(self, keyword: Token):
+        self.keyword = keyword
+
+    def accept(self, visitor: Any) -> Any:
+        return visitor.visitContinueStmt(self)
 
 class Expression(Stmt):
     def __init__(self, expression: Expr.Expr):

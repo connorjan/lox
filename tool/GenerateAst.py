@@ -58,7 +58,9 @@ def main(args):
     ])
 
     defineAst(args.output, "Stmt", [
+        "Break      : keyword: Token",
         "Block      : statements: List[Stmt]",
+        "Continue   : keyword: Token",
         "Expression : expression: Expr.Expr",
         "Function   : name: Token, params: List[Token], body: List[Stmt]",
         "If         : condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt",

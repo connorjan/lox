@@ -1,4 +1,4 @@
-import ControlExceptions
+import ControlException
 import LoxCallable
 import Interpreter
 import Stmt
@@ -29,7 +29,7 @@ class LoxFunction(LoxCallable.LoxCallable):
         # Catch a return statement as to not continue execution
         try:
             interpreter.executeBlock(self.declaration.body, environment)
-        except ControlExceptions.Return as returnValue:
+        except ControlException.Return as returnValue:
             return returnValue.value
 
         # If there was no return statement, return None by default

@@ -78,7 +78,7 @@ class Lox:
 
     @classmethod
     def runtimeError(cls, error: RuntimeException):
-        print(f"{error.__class__.__name__}: {error.message}\n[line {error.token.line}]")
+        print(f"Error: {error.message}\n[line {error.token.line}]")
         LoxError.hadRuntimeError = True
 
 if __name__ == '__main__':

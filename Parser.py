@@ -32,13 +32,15 @@ class Parser:
     expression     := assignment ;
 
     // Statement grammar from highest precedence to lowest
+    breakStmt      := "break" ";" ;
+    continueStmt   := "continue" ";" ;
     exprStmt       := expression ";" ;
     forStmt        := "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
     ifStmt         := "if" "(" expression ")" statement ( "else" statement )? ;
     returnStmt     := "return" expression? ";" ;
     whiteStmt      := "while" "(" expression ")" statement ;
     block          := "{" declaration* "}" ;
-    statement      := exprStmt | ifStmt | returnStmt | whileStmt | block ;
+    statement      := breakStmt | continueStmt | exprStmt | ifStmt | returnStmt | whileStmt | block ;
     parameters     := IDENTIFIER ( "," IDENTIFIER )* ;
     function       := IDENTIFIER "(" parameters? ")" block ;
     funDecl        := "fun" function ;
@@ -284,6 +286,16 @@ class Parser:
         return self.assignment()
 
     # Methods to deal with statements
+    def breakStatement(self) -> Stmt.Stmt:
+        keyword = self.previous()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after break statement")
+        return Stmt.Break(keyword)
+
+    def continueStatement(self) -> Stmt.Stmt:
+        keyword = self.previous()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after continue statement")
+        return Stmt.Continue(keyword)
+
     def expressionStatement(self) -> Stmt.Stmt:
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected ';' after expression")
@@ -375,7 +387,11 @@ class Parser:
         return statements
 
     def statement(self) -> Stmt.Stmt:
-        if self.match(TokenType.IF):
+        if self.match(TokenType.BREAK):
+            return self.breakStatement()
+        elif self.match(TokenType.CONTINUE):
+            return self.continueStatement()
+        elif self.match(TokenType.IF):
             return self.ifStatement()
         elif self.match(TokenType.FOR):
             return self.forStatement()
