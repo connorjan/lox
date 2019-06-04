@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import Lox
+import LoxPass
 import Expr
 import Interpreter
 import Stmt
@@ -8,7 +9,7 @@ from Token import Token
 from enum import Enum, auto
 from typing import Any, Dict, List
 
-class Resolver:
+class Resolver(LoxPass.LoxPass):
     """
     Class to perform a pass over the AST for the semantic analysis of
     resolving values
@@ -19,9 +20,11 @@ class Resolver:
         FUNCTION = auto()
 
     def __init__(self, interpreter: Interpreter.Interpreter):
+        super().__init__(pure=True)
         self.interpreter = interpreter
         self.scopes: List[Dict[str, bool]] = []
         self.currentFunction = Resolver.FunctionType.NONE
+        self.loopDepth = 0 # Track the loop depth
 
     # Helper methods
     def resolveFunction(self, function: Stmt.Function, funcType: Resolver.FunctionType) -> None:
@@ -79,10 +82,12 @@ class Resolver:
         self.endScope()
 
     def visitBreakStmt(self, stmt: Stmt.Break) -> None:
-        return
+        if self.loopDepth < 1:
+            Lox.Lox.tokenError(stmt.keyword, "Cannot break outside of a loop")
 
     def visitContinueStmt(self, stmt: Stmt.Continue) -> None:
-        return
+        if self.loopDepth < 1:
+            Lox.Lox.tokenError(stmt.keyword, "Cannot continue outside of a loop")
 
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.resolve(stmt.expression)
@@ -111,8 +116,10 @@ class Resolver:
         self.define(stmt.name)
 
     def visitWhileStmt(self, stmt: Stmt.While) -> None:
+        self.loopDepth += 1
         self.resolve(stmt.condition)
         self.resolve(stmt.body)
+        self.loopDepth -= 1
 
     def visitAssignExpr(self, expr: Expr.Assign) -> None:
         self.resolve(expr.value)

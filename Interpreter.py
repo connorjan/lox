@@ -3,6 +3,7 @@ import Lox
 import LoxBuiltins
 import LoxCallable
 import LoxFunction
+import LoxPass
 import Expr
 import Stmt
 from Environment import Environment
@@ -11,10 +12,11 @@ from TokenType import TokenType
 from Token import Token
 from typing import Dict, List, Tuple
 
-class Interpreter:
+class Interpreter(LoxPass.LoxPass):
     """ Class to interpret expressions """
 
     def __init__(self):
+        super().__init__(pure=True)
         self.globals = Environment()
         self.environment = self.globals
         self.locals: Dict[Expr.Expr, int] = {}
