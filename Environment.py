@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from RuntimeException import RuntimeException
 from Token import Token
 from typing import Dict
@@ -8,6 +10,17 @@ class Environment:
     def __init__(self, enclosing=None):
         self.values: Dict[str, object] = {}
         self.enclosing: Environment = enclosing;
+
+    def ancestor(self, distance: int) -> Environment:
+        """ Get an environment at a specified distance """
+        environment = self
+        for i in range(distance):
+            environment = environment.enclosing
+        return environment
+
+    def assignAt(self, distance: int, name: Token, value: object) -> None:
+        """ Assign a value to an enviroment at a specified distance """
+        self.ancestor(distance).values[name.lexeme] = value
 
     def define(self, name: str, value: object) -> None:
         """ Creates a new variable with value """
@@ -23,6 +36,10 @@ class Environment:
             return self.enclosing.get(name)
         else:
             raise RuntimeException(name, f"Undefined variable '{name.lexeme}'")
+
+    def getAt(self, distance: int, name: str) -> object:
+        """ Get a value from an enviroment at a specified distance """
+        return self.ancestor(distance).values[name]
 
     def assign(self, name: Token, value: object) -> None:
         """ Assigns a value to an existing variable """

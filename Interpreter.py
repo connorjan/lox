@@ -9,7 +9,7 @@ from Environment import Environment
 from RuntimeException import RuntimeException
 from TokenType import TokenType
 from Token import Token
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 class Interpreter:
     """ Class to interpret expressions """
@@ -17,11 +17,12 @@ class Interpreter:
     def __init__(self):
         self.globals = Environment()
         self.environment = self.globals
+        self.locals: Dict[Expr.Expr, int] = {}
 
         # Add builtins
-        self.globals.define("clock", LoxBuiltins.loxClock())
-        self.globals.define("string", LoxBuiltins.loxString())
-        self.globals.define("print", LoxBuiltins.loxPrint())
+        self.globals.define(LoxBuiltins.loxClock.name,  LoxBuiltins.loxClock())
+        self.globals.define(LoxBuiltins.loxString.name, LoxBuiltins.loxString())
+        self.globals.define(LoxBuiltins.loxPrint.name,  LoxBuiltins.loxPrint())
 
     def interpret(self, statements: List[Stmt.Stmt]) -> None:
         """ Interpret a list of statements """
@@ -49,6 +50,16 @@ class Interpreter:
                 self.execute(statement)
         finally:
             self.environment = previous
+
+    def resolve(self, expr: Expr.Expr, depth: int) -> None:
+        self.locals[expr] = depth
+
+    def lookUpVariable(self, name: Token, expr: Expr.Expr) -> object:
+        distance = self.locals.get(expr, None)
+        if distance is not None:
+            return self.environment.getAt(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
 
     def toBool(self, obj: object) -> bool:
         """ Lox's rules of how objects are converted to bools are the same as Python """
@@ -80,7 +91,11 @@ class Interpreter:
     # Expr visitor methods
     def visitAssignExpr(self, expr: Expr.Assign) -> object:
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+        distance = self.locals.get(expr, None)
+        if distance is not None:
+            self.environment.assignAt(distance, expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
         return value
 
     def visitCallExpr(self, expr: Expr.Call) -> object:
@@ -90,10 +105,9 @@ class Interpreter:
         # Evaluate each of the arguments
         arguments = [self.evaluate(arg) for arg in expr.arguments]
 
-        # Make sure the calle is actually callable
+        # Make sure the callee is actually callable
         if not isinstance(callee, LoxCallable.LoxCallable):
-            raise RuntimeException(expr.paren,
-                "Can only call functions and classes")
+            raise RuntimeException(expr.paren, "Can only call functions and classes")
 
         # Check the function's arity
         numArgs = len(arguments)
@@ -200,7 +214,7 @@ class Interpreter:
         return self.evaluate(expr.right)
 
     def visitVariableExpr(self, expr: Expr.Variable) -> None:
-        return self.environment.get(expr.name)
+        return self.lookUpVariable(expr.name, expr)
 
     # Stmt visitor methods
     def visitBreakStmt(self, stmt: Stmt.Break) -> None:

@@ -7,10 +7,11 @@ import LoxCallable
 class LoxBuiltin(LoxCallable.LoxCallable):
 
     def __str__(self):
-        return f"<native function {self.__class__.__name__}>"
+        return f"<native function {self.name}>"
 
 class loxClock(LoxBuiltin):
     """ Returns the current system time as a float in seconds """
+    name = "clock"
 
     def arity(self) -> int:
         return 0
@@ -20,6 +21,7 @@ class loxClock(LoxBuiltin):
 
 class loxPrint(LoxBuiltin):
     """ Prints a value  """
+    name = "print"
 
     def arity(self) -> int:
         return 1
@@ -29,6 +31,7 @@ class loxPrint(LoxBuiltin):
 
 class loxString(LoxBuiltin):
     """ Returns the string representation of an object """
+    name = "string"
 
     def arity(self) -> int:
         return 1

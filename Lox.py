@@ -8,6 +8,7 @@ import AstPrinter
 import Parser
 import Scanner
 import Interpreter
+import Resolver
 from LoxError import LoxError
 from RuntimeException import RuntimeException
 from Token import Token
@@ -51,14 +52,19 @@ class Lox:
     def run(cls, source: str) -> None:
         scanner = Scanner.Scanner(source)
         tokens = scanner.scanTokens()
-
         parser = Parser.Parser(tokens)
         statements = parser.parse()
 
         if LoxError.hadError:
             return
-        else:
-            cls.interpreter.interpret(statements)
+
+        resolver = Resolver.Resolver(cls.interpreter)
+        resolver.resolve(statements)
+
+        if LoxError.hadError:
+            return
+
+        cls.interpreter.interpret(statements)
 
     @classmethod
     def report(cls, line: int, where: str, message: str) -> None:
