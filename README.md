@@ -2,7 +2,7 @@
 
 This is my repository for storing my code while I go through the fantastic
 book about creating a custom scripting language:
-[Crafting Interpreters](http://www.craftinginterreters.com/).
+[Crafting Interpreters](http://www.craftinginterpreters.com/).
 
 The book goes through two complete implementations of the interpreter.
 [The First Interpreter](http://www.craftinginterpreters.com/introduction.html#the-first-interpreter)
