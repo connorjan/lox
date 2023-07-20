@@ -81,6 +81,20 @@ class Scanner:
         # Trim the surrounding quotes and add the token
         self.addToken(TokenType.STRING, self.source[self.start+1:self.current-1])
 
+    def blockcomment(self) -> None:
+        while self.peek() != "*" and self.peekNext() != "/" and not self.atEnd():
+            if self.peek() == "\n":
+                self.line += 1
+            self.advance()
+
+        if self.atEnd():
+            self.lox.error(self.line, "Unterminated block comment.")
+            return
+
+        # Consume the closing "*/"
+        self.advance()
+        self.advance()
+
     def number(self) -> None:
         while self.peek().isnumeric():
             self.advance()
@@ -138,6 +152,8 @@ class Scanner:
                 if self.match("/"):
                     while self.peek() != "\n" and not self.atEnd():
                         self.advance()
+                elif self.match("*"):
+                    self.blockcomment()
                 else:
                     self.addToken(TokenType.SLASH)
 
