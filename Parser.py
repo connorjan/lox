@@ -1,10 +1,7 @@
 import Expr
-from ErrorManager import ErrorManager
+from ErrorManager import *
 from Token import Token
 from TokenType import TokenType
-
-class ParseError(Exception):
-    pass
 
 class Parser:
 

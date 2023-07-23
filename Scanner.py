@@ -108,7 +108,11 @@ class Scanner:
             while self.peek().isnumeric():
                 self.advance()
 
-        self.addToken(TokenType.NUMBER, float(self.source[self.start:self.current]))
+        num: str = self.source[self.start:self.current]
+        if "." in num:
+            self.addToken(TokenType.NUMBER, float(num))
+        else:
+            self.addToken(TokenType.NUMBER, int(num,0))
 
     def isalpha(self, c: str) -> bool:
         return c.isalpha() or c == "_"

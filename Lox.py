@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
 import argparse
+import readline # Use GNU readline features for the REPL
 import sys
 
 import Expr
-from ErrorManager import ErrorManager
+from ErrorManager import *
 from Token import Token
 from Scanner import Scanner
 from Parser import Parser
+from Interpreter import Interpreter
 from AstPrinter import AstPrinter
 
 class Lox:
 
     def __init__(self):
         self.errorManager = ErrorManager()
+        self.interpreter = Interpreter(self.errorManager)
 
     def run(self, source: str) -> None:
         scanner: Scanner = Scanner(self.errorManager, source)
@@ -24,8 +27,9 @@ class Lox:
         if self.errorManager.hadError:
             return
 
-        astPrinter = AstPrinter()
-        print(astPrinter.print(expression))
+        # astPrinter = AstPrinter()
+        # print(astPrinter.print(expression))
+        self.interpreter.interpret(expression)
 
     def runPrompt(self) -> None:
         try:
