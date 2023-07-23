@@ -137,7 +137,9 @@ class Scanner:
             case "-": self.addToken(TokenType.MINUS)
             case "+": self.addToken(TokenType.PLUS)
             case ";": self.addToken(TokenType.SEMICOLON)
-            case "*": self.addToken(TokenType.STAR)
+            case "&": self.addToken(TokenType.AMPERSAND)
+            case "|": self.addToken(TokenType.BAR)
+            case "^": self.addToken(TokenType.CARROT)
 
             case "!" if self.match("="): self.addToken(TokenType.BANG_EQUAL)
             case "!":                    self.addToken(TokenType.BANG)
@@ -147,6 +149,9 @@ class Scanner:
             case "<":                    self.addToken(TokenType.LESS)
             case ">" if self.match("="): self.addToken(TokenType.GREATER_EQUAL)
             case ">":                    self.addToken(TokenType.GREATER)
+
+            case "*" if self.match("*"): self.addToken(TokenType.STAR_STAR)
+            case "*":                    self.addToken(TokenType.STAR)
 
             case "/":
                 if self.match("/"):

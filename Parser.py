@@ -107,10 +107,32 @@ class Parser:
 
     def factor(self) -> Expr.Expr:
         """
-        factor := unary ( ( "*" | "/" ) unary )*
+        factor := bitwise ( ( "*" | "/" ) bitwise )*
+        """
+        expr: Expr.Expr = self.bitwise()
+        while self.match(TokenType.STAR, TokenType.SLASH):
+            operator: Token = self.previous()
+            right: Expr.Expr = self.bitwise()
+            expr = Expr.Binary(expr, operator, right)
+        return expr
+
+    def bitwise(self) -> Expr.Expr:
+        """
+        bitwise := exp ( ( "&" | "|" | "^" ) exp )*
+        """
+        expr: Expr.Expr = self.exp()
+        while self.match(TokenType.AMPERSAND, TokenType.BAR, TokenType.CARROT):
+            operator: Token = self.previous()
+            right: Expr.Expr = self.exp()
+            expr = Expr.Binary(expr, operator, right)
+        return expr
+
+    def exp(self) -> Expr.Expr:
+        """
+        exp := unary ( "**" unary )*
         """
         expr: Expr.Expr = self.unary()
-        while self.match(TokenType.STAR, TokenType.SLASH):
+        while self.match(TokenType.STAR_STAR):
             operator: Token = self.previous()
             right: Expr.Expr = self.unary()
             expr = Expr.Binary(expr, operator, right)
