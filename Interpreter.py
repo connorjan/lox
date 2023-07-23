@@ -1,12 +1,15 @@
 import Expr
+import Stmt
 from ErrorManager import *
 from Token import Token
 from TokenType import TokenType
+from Environment import Environment
 
 class Interpreter:
 
     def __init__(self, errorManager: ErrorManager) -> None:
-        self.errorManager = errorManager
+        self.errorManager: ErrorManager = errorManager
+        self.environment: Environment = Environment(self.errorManager)
 
     def visitLiteralExpr(self, expr: Expr.Literal) -> any:
         return expr.value
@@ -27,6 +30,11 @@ class Interpreter:
             if not isinstance(operand, types):
                 raise RuntimeError(operator, f"Operand must be one of the following types: {', '.join(str(t.__name__) for t in types)}")
         return
+
+    # Expression visitors
+
+    def visitVariableExpr(self, expr: Expr.Variable) -> any:
+        return self.environment.get(expr.name)
 
     def visitGroupingExpr(self, expr: Expr.Grouping) -> any:
         return self.evaluate(expr.expression)
@@ -99,9 +107,32 @@ class Interpreter:
 
         raise Exception(f"Unreachable, operator: {expr.operator}")
 
-    def interpret(self, expression: Expr.Expr) -> None:
+    def visitAssignExpr(self, expr: Expr.Assign) -> any:
+        value: any = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
+
+    # Statement visitors
+
+    def execute(self, stmt: Stmt.Stmt) -> None:
+        stmt.accept(self)
+
+    def visitPrintStmt(self, stmt: Stmt.Print) -> None:
+        value: any = self.evaluate(stmt.expression)
+        print(self.stringify(value))
+
+    def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
+        self.evaluate(stmt.expression)
+
+    def visitVarStmt(self, stmt: Stmt.Var) -> None:
+        value: any = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
+
+    def interpret(self, statements: list[Stmt.Stmt]) -> None:
         try:
-            value: any = self.evaluate(expression)
-            print(self.stringify(value))
+            for stmt in statements:
+                self.execute(stmt)
         except RuntimeError as error:
             self.errorManager.runtimeError(error)

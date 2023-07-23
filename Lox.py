@@ -5,6 +5,7 @@ import readline # Use GNU readline features for the REPL
 import sys
 
 import Expr
+import Stmt
 from ErrorManager import *
 from Token import Token
 from Scanner import Scanner
@@ -22,14 +23,14 @@ class Lox:
         scanner: Scanner = Scanner(self.errorManager, source)
         tokens: list[Token] = scanner.scanTokens()
         parser: Parser = Parser(self.errorManager, tokens)
-        expression: Expr.Expr = parser.parse()
+        statements: list[Stmt.Stmt] = parser.parse()
 
         if self.errorManager.hadError:
             return
 
         # astPrinter = AstPrinter()
         # print(astPrinter.print(expression))
-        self.interpreter.interpret(expression)
+        self.interpreter.interpret(statements)
 
     def runPrompt(self) -> None:
         try:

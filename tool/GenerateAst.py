@@ -3,14 +3,14 @@
 import argparse
 import pathlib
 
-def defineAst(outputDir: str, baseName: str, types: list[str]) -> None:
+def defineAst(outputDir: str, baseName: str, imports: str, types: list[str]) -> None:
     path: str = pathlib.Path(outputDir) / f"{baseName}.py"
     with open(path, "w") as o:
         o.write(f"""\
 # This file is auto-generated from tool/GenerateAst.py
 # Do not modify!
 
-from Token import Token
+{imports}
 
 class {baseName}:
     pass
@@ -35,12 +35,29 @@ class {baseName}:
 
 def main(args) -> int:
 
-    defineAst(args.output_dir, "Expr", [
-        ["Binary",   "left: Expr", "operator: Token", "right: Expr"],
-        ["Grouping", "expression: Expr"],
-        ["Literal",  "value: any"],
-        ["Unary",    "operator: Token", "right: Expr"]
-    ])
+    # Create the AST classes for expressions
+    defineAst(args.output_dir, "Expr",
+       "from Token import Token",
+        [
+            ["Assign",   "name: Token", "value: Expr"],
+            ["Binary",   "left: Expr", "operator: Token", "right: Expr"],
+            ["Grouping", "expression: Expr"],
+            ["Literal",  "value: any"],
+            ["Unary",    "operator: Token", "right: Expr"],
+            ["Variable",    "name: Token"],
+        ]
+    )
+
+    # Create the AST classes for statements
+    defineAst(args.output_dir, "Stmt",
+        "from Token import Token\n"+
+        "from Expr import *",
+        [
+            ["Expression", "expression: Expr"],
+            ["Print",      "expression: Expr"],
+            ["Var",        "name: Token", "initializer: Expr"],
+        ]
+    )
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Generates the expression classes for Lox")

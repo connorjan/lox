@@ -6,6 +6,14 @@ from Token import Token
 class Expr:
     pass
 
+class Assign(Expr):
+    def __init__(self, name: Token, value: Expr):
+        self.name: Token = name
+        self.value: Expr = value
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitAssignExpr(self)
+
 class Binary(Expr):
     def __init__(self, left: Expr, operator: Token, right: Expr):
         self.left: Expr = left
@@ -36,4 +44,11 @@ class Unary(Expr):
 
     def accept(self, visitor: any) -> any:
         return visitor.visitUnaryExpr(self)
+
+class Variable(Expr):
+    def __init__(self, name: Token):
+        self.name: Token = name
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitVariableExpr(self)
 
