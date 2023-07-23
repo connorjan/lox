@@ -1,4 +1,4 @@
-import Lox
+from ErrorManager import ErrorManager
 from TokenType import TokenType
 from Token import Token
 
@@ -23,9 +23,9 @@ class Scanner:
         "while":  TokenType.WHILE,
     }
 
-    def __init__(self, lox: Lox.Lox, source: str) -> None:
+    def __init__(self, errorManager: ErrorManager, source: str) -> None:
         self.source = source
-        self.lox = lox
+        self.errorManager = errorManager
         self.tokens: list[Token] = []
 
         self.start = 0
@@ -72,7 +72,7 @@ class Scanner:
             self.advance()
 
         if self.atEnd():
-            self.lox.error(self.line, "Unterminated string.")
+            self.errorManager.scanError(self.line, "Unterminated string.")
             return
 
         # Consume the closing "
@@ -88,7 +88,7 @@ class Scanner:
             self.advance()
 
         if self.atEnd():
-            self.lox.error(self.line, "Unterminated block comment.")
+            self.errorManager.scanError(self.line, "Unterminated block comment.")
             return
 
         # Consume the closing "*/"
@@ -173,7 +173,7 @@ class Scanner:
                 self.identifier()
 
             case _:
-                self.lox.error(self.line, "Unexpexted character.")
+                self.errorManager.scanError(self.line, "Unexpexted character.")
 
     def scanTokens(self) -> list[Token]:
         while not self.atEnd():

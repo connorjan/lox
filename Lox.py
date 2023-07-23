@@ -3,27 +3,36 @@
 import argparse
 import sys
 
-import Scanner
+import Expr
+from ErrorManager import ErrorManager
 from Token import Token
+from Scanner import Scanner
+from Parser import Parser
+from AstPrinter import AstPrinter
 
 class Lox:
 
     def __init__(self):
-        self.hadError = False
+        self.errorManager = ErrorManager()
 
     def run(self, source: str) -> None:
-        scanner: Scanner.Scanner = Scanner.Scanner(self, source)
+        scanner: Scanner = Scanner(self.errorManager, source)
         tokens: list[Token] = scanner.scanTokens()
+        parser: Parser = Parser(self.errorManager, tokens)
+        expression: Expr.Expr = parser.parse()
 
-        for token in tokens:
-            print(token)
+        if self.errorManager.hadError:
+            return
+
+        astPrinter = AstPrinter()
+        print(astPrinter.print(expression))
 
     def runPrompt(self) -> None:
         try:
             while True:
                 line = input("> ")
                 self.run(line)
-                self.hadError = False
+                self.errorManager.hadError = False
         except (KeyboardInterrupt, EOFError):
             return
 
@@ -31,15 +40,8 @@ class Lox:
         source: str = file.read()
         self.run(source)
 
-        if self.hadError:
+        if self.errorManager.hadError:
             sys.exit(1)
-
-    def report(self, line: int, where: str, message: str) -> None:
-        print(f"[line {line}] Error {where}: {message}")
-
-    def error(self, line: int, message: str) -> None:
-        self.report(line, "", message)
-
 
 def main(args) -> int:
     lox = Lox()
