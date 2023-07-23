@@ -115,10 +115,10 @@ class Parser:
 
     def bitwise(self) -> Expr.Expr:
         """
-        bitwise := exp ( ( "&" | "|" | "^" ) exp )*
+        bitwise := exp ( ( "&" | "|" | "^" | "<<" | ">>" ) exp )*
         """
         expr: Expr.Expr = self.exp()
-        while self.match(TokenType.AMPERSAND, TokenType.BAR, TokenType.CARROT):
+        while self.match(TokenType.AMPERSAND, TokenType.BAR, TokenType.CARROT, TokenType.LESS_LESS, TokenType.GREATER_GREATER):
             operator: Token = self.previous()
             right: Expr.Expr = self.exp()
             expr = Expr.Binary(expr, operator, right)

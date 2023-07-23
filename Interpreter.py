@@ -51,7 +51,7 @@ class Interpreter:
         match expr.operator.type:
             case TokenType.MINUS | TokenType.SLASH | TokenType.STAR | TokenType.GREATER | TokenType.GREATER_EQUAL | TokenType.LESS | TokenType.LESS_EQUAL:
                 self.checkTypeOfOperands(expr.operator, types=(int,float), operands=[left, right])
-            case TokenType.AMPERSAND | TokenType.BAR | TokenType.CARROT | TokenType.STAR_STAR:
+            case TokenType.AMPERSAND | TokenType.BAR | TokenType.CARROT | TokenType.STAR_STAR | TokenType.LESS_LESS | TokenType.GREATER_GREATER:
                 self.checkTypeOfOperands(expr.operator, types=(int,), operands=[left, right])
 
         match expr.operator.type:
@@ -76,6 +76,10 @@ class Interpreter:
                 return left | right
             case TokenType.CARROT:
                 return left ^ right
+            case TokenType.LESS_LESS:
+                return left << right
+            case TokenType.GREATER_GREATER:
+                return left >> right
 
             # Comparison
             case TokenType.GREATER:

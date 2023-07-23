@@ -150,8 +150,10 @@ class Scanner:
             case "=" if self.match("="): self.addToken(TokenType.EQUAL_EQUAL)
             case "=":                    self.addToken(TokenType.EQUAL)
             case "<" if self.match("="): self.addToken(TokenType.LESS_EQUAL)
+            case "<" if self.match("<"): self.addToken(TokenType.LESS_LESS)
             case "<":                    self.addToken(TokenType.LESS)
             case ">" if self.match("="): self.addToken(TokenType.GREATER_EQUAL)
+            case ">" if self.match(">"): self.addToken(TokenType.GREATER_GREATER)
             case ">":                    self.addToken(TokenType.GREATER)
 
             case "*" if self.match("*"): self.addToken(TokenType.STAR_STAR)

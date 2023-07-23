@@ -24,8 +24,10 @@ class TokenType(Enum):
     EQUAL_EQUAL = auto()
     GREATER = auto()
     GREATER_EQUAL = auto()
+    GREATER_GREATER = auto()
     LESS = auto()
     LESS_EQUAL = auto()
+    LESS_LESS = auto()
     STAR = auto()
     STAR_STAR = auto()
 
