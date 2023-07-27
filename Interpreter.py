@@ -117,6 +117,18 @@ class Interpreter:
     def execute(self, stmt: Stmt.Stmt) -> None:
         stmt.accept(self)
 
+    def executeBlock(self, statements: list[Stmt.Stmt], environment: Environment) -> None:
+        previous: Environment = self.environment
+        try:
+            self.environment = environment
+            for stmt in statements:
+                self.execute(stmt)
+        finally:
+            self.environment = previous
+
+    def visitBlockStmt(self, stmt: Stmt.Block) -> None:
+        self.executeBlock(stmt.statements, Environment(self.errorManager, self.environment))
+
     def visitPrintStmt(self, stmt: Stmt.Print) -> None:
         value: any = self.evaluate(stmt.expression)
         print(self.stringify(value))

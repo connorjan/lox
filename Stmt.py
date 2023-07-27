@@ -7,6 +7,13 @@ from Expr import *
 class Stmt:
     pass
 
+class Block(Stmt):
+    def __init__(self, statements: list[Stmt]):
+        self.statements: list[Stmt] = statements
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitBlockStmt(self)
+
 class Expression(Stmt):
     def __init__(self, expression: Expr):
         self.expression: Expr = expression

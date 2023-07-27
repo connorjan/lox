@@ -53,6 +53,7 @@ def main(args) -> int:
         "from Token import Token\n"+
         "from Expr import *",
         [
+            ["Block",      "statements: list[Stmt]"],
             ["Expression", "expression: Expr"],
             ["Print",      "expression: Expr"],
             ["Var",        "name: Token", "initializer: Expr"],

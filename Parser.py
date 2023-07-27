@@ -92,12 +92,24 @@ class Parser:
 
     def statement(self) -> Stmt.Stmt:
         """
-        statement := expressionStatement | printStatement
+        statement := expressionStatement | printStatement | block
         """
         if self.match(TokenType.PRINT):
             return self.printStatement()
+        elif self.match(TokenType.LEFT_BRACE):
+            return Stmt.Block(self.block())
 
         return self.expressionStatement()
+
+    def block(self) -> list[Stmt.Stmt]:
+        """
+        block := "{" declaration* "}"
+        """
+        statements: list[Stmt.Stmt] = []
+        while not self.check(TokenType.RIGHT_BRACE) and not self.atEnd():
+            statements.append(self.declaration())
+        self.consume(TokenType.RIGHT_BRACE, "Expected closing \"}\" after block")
+        return statements
 
     def printStatement(self) -> Stmt.Stmt:
         """
