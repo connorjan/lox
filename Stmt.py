@@ -45,3 +45,11 @@ class Var(Stmt):
     def accept(self, visitor: any) -> any:
         return visitor.visitVarStmt(self)
 
+class While(Stmt):
+    def __init__(self, condition: Expr, body: Stmt):
+        self.condition: Expr = condition
+        self.body: Stmt = body
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitWhileStmt(self)
+

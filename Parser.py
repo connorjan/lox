@@ -84,7 +84,7 @@ class Parser:
         varDeclaration := "var" IDENTIFIER ( "=" expression )? ";"
         """
         name: Token = self.consume(TokenType.IDENTIFIER, "Expected a valid variable name")
-        initializer: Expr.Expr = None
+        initializer: Expr.Expr | None = None
         if self.match(TokenType.EQUAL):
             initializer = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected \";\" at the end of the statement")
@@ -93,18 +93,70 @@ class Parser:
     def statement(self) -> Stmt.Stmt:
         """
         statement :=      expressionStatement
+                        | forStatement
                         | ifStatement
                         | printStatement
+                        | whileStatement
                         | block
         """
-        if self.match(TokenType.IF):
+        if self.match(TokenType.FOR):
+            return self.forStatement()
+        elif self.match(TokenType.IF):
             return self.ifStatement()
         elif self.match(TokenType.PRINT):
             return self.printStatement()
+        elif self.match(TokenType.WHILE):
+            return self.whileStatement()
         elif self.match(TokenType.LEFT_BRACE):
             return Stmt.Block(self.block())
 
         return self.expressionStatement()
+
+    def forStatement(self) -> Stmt.Stmt:
+        """
+        forStatement := "for" "(" ( varDeclaration | expressionStatement | ";" ) expression? ";" expression? ")" statement
+        """
+        self.consume(TokenType.LEFT_PAREN, "Expected opening \"(\"")
+        initializer: Stmt.Stmt | None = None
+        if self.match(TokenType.SEMICOLON):
+            initializer = None
+        elif self.match(TokenType.VAR):
+            initializer = self.varDeclaration()
+        else:
+            initializer = self.expressionStatement()
+
+        condition: Expr.Expr | None = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected \";\" after loop condition")
+
+        increment: Expr.Expr | None = None
+        if not self.check(TokenType.RIGHT_PAREN):
+            increment = self.expression()
+
+        self.consume(TokenType.RIGHT_PAREN, "Expected closing \")\"")
+
+        # Desugar the for loop into a whileStatement
+        body: Stmt.Stmt = self.statement()
+
+        if increment is not None:
+            body = Stmt.Block([
+                body,
+                Stmt.Expression(increment)
+            ])
+
+        if condition is None:
+            condition = Expr.Literal(True)
+
+        body = Stmt.While(condition, body)
+
+        if initializer is not None:
+            body = Stmt.Block([
+                initializer,
+                body
+            ])
+
+        return body
 
     def ifStatement(self) -> Stmt.Stmt:
         """
@@ -120,6 +172,17 @@ class Parser:
             elseBranch = self.statement()
 
         return Stmt.If(condition, thenBranch, elseBranch)
+
+    def whileStatement(self) -> Stmt.Stmt:
+        """
+        whileStatement := "while" "(" expression ")" statement
+        """
+        self.consume(TokenType.LEFT_PAREN, "Expected opening \"(\"")
+        condition: Expr.Expr = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected closing \")\"")
+        body: Stmt.Stmt = self.statement()
+
+        return Stmt.While(condition, body)
 
     def block(self) -> list[Stmt.Stmt]:
         """

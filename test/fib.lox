@@ -1,0 +1,12 @@
+// Prints fibonacci numbers
+
+var a = 0;
+var b = 1;
+
+print a;
+for (var i = 0; i < 20; i = i+1) {
+    print b;
+    var new = a+b;
+    a = b;
+    b = new;
+}

@@ -160,6 +160,10 @@ class Interpreter:
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
 
+    def visitWhileStmt(self, stmt: Stmt.While) -> None:
+        while self.isTruthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.body)
+
     def interpret(self, statements: list[Stmt.Stmt]) -> None:
         try:
             for stmt in statements:
