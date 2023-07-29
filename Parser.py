@@ -92,14 +92,34 @@ class Parser:
 
     def statement(self) -> Stmt.Stmt:
         """
-        statement := expressionStatement | printStatement | block
+        statement :=      expressionStatement
+                        | ifStatement
+                        | printStatement
+                        | block
         """
-        if self.match(TokenType.PRINT):
+        if self.match(TokenType.IF):
+            return self.ifStatement()
+        elif self.match(TokenType.PRINT):
             return self.printStatement()
         elif self.match(TokenType.LEFT_BRACE):
             return Stmt.Block(self.block())
 
         return self.expressionStatement()
+
+    def ifStatement(self) -> Stmt.Stmt:
+        """
+        ifStatement := "if" "(" expression ")" statement ( "else" statement )?
+        """
+        self.consume(TokenType.LEFT_PAREN, "Expected opening \"(\"")
+        condition: Expr.Expr = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected closing \")\"")
+
+        thenBranch: Stmt.Stmt = self.statement()
+        elseBranch: Stmt.Stmt = None
+        if self.match(TokenType.ELSE):
+            elseBranch = self.statement()
+
+        return Stmt.If(condition, thenBranch, elseBranch)
 
     def block(self) -> list[Stmt.Stmt]:
         """
@@ -137,9 +157,9 @@ class Parser:
 
     def assignment(self) -> Expr.Expr:
         """
-        assignment := IDENTIFIER "=" assignment | equality
+        assignment := IDENTIFIER "=" assignment | logical_or
         """
-        expr: Expr.Expr = self.equality()
+        expr: Expr.Expr = self.logical_or()
 
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
@@ -151,6 +171,28 @@ class Parser:
 
             self.error(equals, "Invalid assignment target")
 
+        return expr
+
+    def logical_or(self) -> Expr.Expr:
+        """
+        logical_or := logical_and ( "or" logical_and )*
+        """
+        expr: Expr.Expr = self.logical_and()
+        while self.match(TokenType.OR):
+            operator: Token = self.previous()
+            right: Expr.Expr = self.logical_and()
+            expr = Expr.Logical(expr, operator, right)
+        return expr
+
+    def logical_and(self) -> Expr.Expr:
+        """
+        logical_and := equality ( "and" equality )*
+        """
+        expr: Expr.Expr = self.equality()
+        while self.match(TokenType.AND):
+            operator: Token = self.previous()
+            right: Expr.Expr = self.equality()
+            expr = Expr.Logical(expr, operator, right)
         return expr
 
     def equality(self) -> Expr.Expr:

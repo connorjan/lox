@@ -21,6 +21,15 @@ class Expression(Stmt):
     def accept(self, visitor: any) -> any:
         return visitor.visitExpressionStmt(self)
 
+class If(Stmt):
+    def __init__(self, condition: Expr, thenBranch: Stmt, elseBranch: Stmt):
+        self.condition: Expr = condition
+        self.thenBranch: Stmt = thenBranch
+        self.elseBranch: Stmt = elseBranch
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitIfStmt(self)
+
 class Print(Stmt):
     def __init__(self, expression: Expr):
         self.expression: Expr = expression

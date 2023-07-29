@@ -11,9 +11,6 @@ class Interpreter:
         self.errorManager: ErrorManager = errorManager
         self.environment: Environment = Environment(self.errorManager)
 
-    def visitLiteralExpr(self, expr: Expr.Literal) -> any:
-        return expr.value
-
     def evaluate(self, expr: Expr.Expr) -> any:
         return expr.accept(self)
 
@@ -33,6 +30,9 @@ class Interpreter:
 
     # Expression visitors
 
+    def visitLiteralExpr(self, expr: Expr.Literal) -> any:
+        return expr.value
+
     def visitVariableExpr(self, expr: Expr.Variable) -> any:
         return self.environment.get(expr.name)
 
@@ -50,6 +50,18 @@ class Interpreter:
                 return -right
 
         raise Exception("Unreachable")
+
+    def visitLogicalExpr(self, expr: Expr.Logical) -> any:
+        left: any = self.evaluate(expr.left)
+
+        if expr.operator.type == TokenType.OR:
+            if self.isTruthy(left):
+                return left
+        if expr.operator.type == TokenType.AND:
+            if not self.isTruthy(left):
+                return left
+
+        return self.evaluate(expr.right)
 
     def visitBinaryExpr(self, expr: Expr.Binary) -> any:
         left = self.evaluate(expr.left)
@@ -135,6 +147,12 @@ class Interpreter:
 
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.evaluate(stmt.expression)
+
+    def visitIfStmt(self, stmt: Stmt.If) -> None:
+        if self.isTruthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.thenBranch)
+        elif stmt.elseBranch is not None:
+            self.execute(stmt.elseBranch)
 
     def visitVarStmt(self, stmt: Stmt.Var) -> None:
         value: any = None
