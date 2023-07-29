@@ -1,5 +1,6 @@
 import Expr
 import Stmt
+from ExecutionFlow import *
 from ErrorManager import *
 from Token import Token
 from TokenType import TokenType
@@ -141,12 +142,37 @@ class Interpreter:
     def visitBlockStmt(self, stmt: Stmt.Block) -> None:
         self.executeBlock(stmt.statements, Environment(self.errorManager, self.environment))
 
+    def visitControlStmt(self, stmt: Stmt.Control) -> None:
+        if stmt.control.type == TokenType.BREAK:
+            raise Break(stmt.control)
+        elif stmt.control.type == TokenType.CONTINUE:
+            raise Continue(stmt.control)
+        else:
+            raise Exception("Unreachable")
+
     def visitPrintStmt(self, stmt: Stmt.Print) -> None:
         value: any = self.evaluate(stmt.expression)
         print(self.stringify(value))
 
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
         self.evaluate(stmt.expression)
+
+    def visitForStmt(self, stmt: Stmt.For) -> None:
+        if stmt.initializer is not None:
+            self.execute(stmt.initializer)
+
+        while self.isTruthy(self.evaluate(stmt.condition)):
+            try:
+                self.execute(stmt.body)
+            except Break:
+                break
+            except Continue:
+                if stmt.increment is not None:
+                    self.execute(stmt.increment)
+                continue
+
+            if stmt.increment is not None:
+                self.execute(stmt.increment)
 
     def visitIfStmt(self, stmt: Stmt.If) -> None:
         if self.isTruthy(self.evaluate(stmt.condition)):
@@ -162,11 +188,18 @@ class Interpreter:
 
     def visitWhileStmt(self, stmt: Stmt.While) -> None:
         while self.isTruthy(self.evaluate(stmt.condition)):
-            self.execute(stmt.body)
+            try:
+                self.execute(stmt.body)
+            except Break:
+                break
+            except Continue:
+                continue
 
     def interpret(self, statements: list[Stmt.Stmt]) -> None:
         try:
             for stmt in statements:
                 self.execute(stmt)
+        except (Break, Continue) as control:
+            self.errorManager.runtimeError(RuntimeError(control.token, f"Cannot use {control.token.lexeme} outside of a loop"))
         except RuntimeError as error:
             self.errorManager.runtimeError(error)

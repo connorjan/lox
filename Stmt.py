@@ -14,12 +14,29 @@ class Block(Stmt):
     def accept(self, visitor: any) -> any:
         return visitor.visitBlockStmt(self)
 
+class Control(Stmt):
+    def __init__(self, control: Token):
+        self.control: Token = control
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitControlStmt(self)
+
 class Expression(Stmt):
     def __init__(self, expression: Expr):
         self.expression: Expr = expression
 
     def accept(self, visitor: any) -> any:
         return visitor.visitExpressionStmt(self)
+
+class For(Stmt):
+    def __init__(self, condition: Expr, initializer: Stmt, increment: Stmt, body: Stmt):
+        self.condition: Expr = condition
+        self.initializer: Stmt = initializer
+        self.increment: Stmt = increment
+        self.body: Stmt = body
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitForStmt(self)
 
 class If(Stmt):
     def __init__(self, condition: Expr, thenBranch: Stmt, elseBranch: Stmt):

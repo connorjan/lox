@@ -1,0 +1,20 @@
+
+var x = 5;
+
+print "While:";
+while ( x > 0 ) {
+    x = x-1;
+    if (x==3) continue;
+    print x;
+    if (x==2) break;
+}
+
+print "For:";
+
+for (var i=0; i < 5; i=i+1) {
+    if (!i) continue;
+    if (i==3) break;
+    print i;
+}
+
+break; // This should cause an error

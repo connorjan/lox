@@ -55,7 +55,9 @@ def main(args) -> int:
         "from Expr import *",
         [
             ["Block",      "statements: list[Stmt]"],
+            ["Control",    "control: Token"],
             ["Expression", "expression: Expr"],
+            ["For",        "condition: Expr", "initializer: Stmt", "increment: Stmt", "body: Stmt"],
             ["If",         "condition: Expr", "thenBranch: Stmt", "elseBranch: Stmt"],
             ["Print",      "expression: Expr"],
             ["Var",        "name: Token", "initializer: Expr"],

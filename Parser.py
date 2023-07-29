@@ -93,13 +93,16 @@ class Parser:
     def statement(self) -> Stmt.Stmt:
         """
         statement :=      expressionStatement
+                        | controlStatement
                         | forStatement
                         | ifStatement
                         | printStatement
                         | whileStatement
                         | block
         """
-        if self.match(TokenType.FOR):
+        if self.match(TokenType.BREAK, TokenType.CONTINUE):
+            return self.controlStatement()
+        elif self.match(TokenType.FOR):
             return self.forStatement()
         elif self.match(TokenType.IF):
             return self.ifStatement()
@@ -112,7 +115,17 @@ class Parser:
 
         return self.expressionStatement()
 
-    def forStatement(self) -> Stmt.Stmt:
+    def controlStatement(self) -> Stmt.Control:
+        """
+        controlStatement := ( "break" | "continue" ) ";"
+        """
+        control: TokenType = self.previous()
+
+        self.consume(TokenType.SEMICOLON, "Expected \";\" at the end of the expression")
+
+        return Stmt.Control(control)
+
+    def forStatement(self) -> Stmt.For:
         """
         forStatement := "for" "(" ( varDeclaration | expressionStatement | ";" ) expression? ";" expression? ")" statement
         """
@@ -125,9 +138,11 @@ class Parser:
         else:
             initializer = self.expressionStatement()
 
-        condition: Expr.Expr | None = None
+        condition: Expr.Expr | None
         if not self.check(TokenType.SEMICOLON):
             condition = self.expression()
+        else:
+            condition = Expr.Literal(True)
         self.consume(TokenType.SEMICOLON, "Expected \";\" after loop condition")
 
         increment: Expr.Expr | None = None
@@ -136,29 +151,11 @@ class Parser:
 
         self.consume(TokenType.RIGHT_PAREN, "Expected closing \")\"")
 
-        # Desugar the for loop into a whileStatement
         body: Stmt.Stmt = self.statement()
 
-        if increment is not None:
-            body = Stmt.Block([
-                body,
-                Stmt.Expression(increment)
-            ])
+        return Stmt.For(condition, initializer, increment, body)
 
-        if condition is None:
-            condition = Expr.Literal(True)
-
-        body = Stmt.While(condition, body)
-
-        if initializer is not None:
-            body = Stmt.Block([
-                initializer,
-                body
-            ])
-
-        return body
-
-    def ifStatement(self) -> Stmt.Stmt:
+    def ifStatement(self) -> Stmt.If:
         """
         ifStatement := "if" "(" expression ")" statement ( "else" statement )?
         """
@@ -173,7 +170,7 @@ class Parser:
 
         return Stmt.If(condition, thenBranch, elseBranch)
 
-    def whileStatement(self) -> Stmt.Stmt:
+    def whileStatement(self) -> Stmt.While:
         """
         whileStatement := "while" "(" expression ")" statement
         """
@@ -194,7 +191,7 @@ class Parser:
         self.consume(TokenType.RIGHT_BRACE, "Expected closing \"}\" after block")
         return statements
 
-    def printStatement(self) -> Stmt.Stmt:
+    def printStatement(self) -> Stmt.Print:
         """
         printStatement := "print" expression ";"
         """
@@ -202,7 +199,7 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expected \";\" at the end of the expression")
         return Stmt.Print(value)
 
-    def expressionStatement(self) -> Stmt.Stmt:
+    def expressionStatement(self) -> Stmt.Expression:
         """
         expressionStatement := expression ";"
         """
