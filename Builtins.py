@@ -18,3 +18,14 @@ class Clock(LoxCallable):
 
     def call(self, interpreter: Interpreter, arguments: list[any]) -> float:
         return time.time()
+
+class Str(LoxCallable):
+
+    def __str__(self) -> str:
+        return "<builtin function str>"
+
+    def arity(self) -> int:
+        return 1
+
+    def call(self, interpreter: Interpreter, arguments: list[any]) -> str:
+        return interpreter.stringify(arguments[0])

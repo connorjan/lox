@@ -2,5 +2,4 @@ var t1 = clock();
 for (var i=0; i<100000; i=i+1) true;
 var t2 = clock();
 
-print "Elapsed time:";
-print t2-t1;
+print "Elapsed time: " + str(t2-t1) + " seconds";

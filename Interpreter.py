@@ -17,6 +17,7 @@ class Interpreter:
 
         # Add builtin functions
         self.globals.define("clock", Builtins.Clock())
+        self.globals.define("str", Builtins.Str())
 
     def evaluate(self, expr: Expr.Expr) -> any:
         return expr.accept(self)
