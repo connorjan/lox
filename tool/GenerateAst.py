@@ -41,6 +41,7 @@ def main(args) -> int:
         [
             ["Assign",   "name: Token", "value: Expr"],
             ["Binary",   "left: Expr", "operator: Token", "right: Expr"],
+            ["Call",     "callee: Expr", "paren: Token", "arguments: list[Expr]"],
             ["Grouping", "expression: Expr"],
             ["Literal",  "value: any"],
             ["Logical",  "left: Expr", "operator: Token", "right: Expr"],

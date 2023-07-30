@@ -347,14 +347,46 @@ class Parser:
 
     def unary(self) -> Expr.Expr:
         """
-        unary :=  ( "!" | "-" ) unary
-                | primary
+        unary :=      ( "!" | "-" ) unary
+                    | call
         """
         if self.match(TokenType.BANG, TokenType.MINUS):
             operator: Token = self.previous()
             right: Expr.Expr = self.unary()
             return Expr.Unary(operator, right)
-        return self.primary()
+        return self.call()
+
+    def finishCall(self, callee: Expr.Expr) -> Expr.Call:
+        """
+        Helper code to parser call expressions
+        """
+        arguments: list[Expr.Expr] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match(TokenType.COMMA):
+                if len(arguments) > 255:
+                    self.error(self.peek(), "Cannot have more than 255 arguments")
+                arguments.append(self.expression())
+
+        paren: Token = self.consume(TokenType.RIGHT_PAREN, "Expected closing \")\" after arguments")
+        return Expr.Call(callee, paren, arguments)
+
+    def call(self) -> Expr.Expr:
+        """
+        call := primary ( "(" arguments? ")" )*
+        """
+        expr: Expr.Expr = self.primary()
+        while True:
+            if self.match(TokenType.LEFT_PAREN):
+                expr = self.finishCall(expr)
+            else:
+                break
+        return expr
+
+    def arguments(self) -> Expr.Expr:
+        """
+        arguments := expression ( "," expression )*
+        """
 
     def primary(self) -> Expr.Expr:
         """

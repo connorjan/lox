@@ -1,5 +1,7 @@
 import Expr
 import Stmt
+import Builtins
+import LoxCallable
 from ExecutionFlow import *
 from ErrorManager import *
 from Token import Token
@@ -10,7 +12,11 @@ class Interpreter:
 
     def __init__(self, errorManager: ErrorManager) -> None:
         self.errorManager: ErrorManager = errorManager
-        self.environment: Environment = Environment(self.errorManager)
+        self.globals: Environment = Environment(self.errorManager)
+        self.environment = self.globals
+
+        # Add builtin functions
+        self.globals.define("clock", Builtins.Clock())
 
     def evaluate(self, expr: Expr.Expr) -> any:
         return expr.accept(self)
@@ -125,6 +131,16 @@ class Interpreter:
                 return bool(left == right)
 
         raise Exception(f"Unreachable, operator: {expr.operator}")
+
+    def visitCallExpr(self, expr: Expr.Call) -> any:
+        callee: any = self.evaluate(expr.callee)
+        arguments: list[any] = [self.evaluate(arg) for arg in expr.arguments]
+
+        if not isinstance(callee, LoxCallable.LoxCallable):
+            raise RuntimeError(expr.paren, "Did not find function or class")
+        elif len(arguments) != callee.arity():
+            raise RuntimeError(expr.paren, f"Expected {callee.arity()} arguments but got {len(arguments)}")
+        return callee.call(self, arguments)
 
     def visitAssignExpr(self, expr: Expr.Assign) -> any:
         value: any = self.evaluate(expr.value)
