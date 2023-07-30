@@ -44,6 +44,7 @@ def main(args) -> int:
             ["Grouping", "expression: Expr"],
             ["Literal",  "value: any"],
             ["Logical",  "left: Expr", "operator: Token", "right: Expr"],
+            ["Ternary",  "condition: Expr", "trueExpr: Expr", "falseExpr: Expr"],
             ["Unary",    "operator: Token", "right: Expr"],
             ["Variable", "name: Token"],
         ]

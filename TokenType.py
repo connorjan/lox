@@ -16,6 +16,8 @@ class TokenType(Enum):
     AMPERSAND = auto()
     BAR = auto()
     CARROT = auto()
+    QUESTION = auto()
+    COLON = auto()
 
     # One or two character tokens
     BANG = auto()

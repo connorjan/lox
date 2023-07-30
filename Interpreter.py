@@ -64,9 +64,15 @@ class Interpreter:
 
         return self.evaluate(expr.right)
 
+    def visitTernaryExpr(self, expr: Expr.Ternary) -> any:
+        if self.isTruthy(self.evaluate(expr.condition)):
+            return self.evaluate(expr.trueExpr)
+        else:
+            return self.evaluate(expr.falseExpr)
+
     def visitBinaryExpr(self, expr: Expr.Binary) -> any:
-        left = self.evaluate(expr.left)
-        right = self.evaluate(expr.right)
+        left: any = self.evaluate(expr.left)
+        right: any = self.evaluate(expr.right)
 
         # Operand checks
         match expr.operator.type:

@@ -46,6 +46,15 @@ class Logical(Expr):
     def accept(self, visitor: any) -> any:
         return visitor.visitLogicalExpr(self)
 
+class Ternary(Expr):
+    def __init__(self, condition: Expr, trueExpr: Expr, falseExpr: Expr):
+        self.condition: Expr = condition
+        self.trueExpr: Expr = trueExpr
+        self.falseExpr: Expr = falseExpr
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitTernaryExpr(self)
+
 class Unary(Expr):
     def __init__(self, operator: Token, right: Expr):
         self.operator: Token = operator

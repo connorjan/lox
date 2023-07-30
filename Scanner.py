@@ -146,6 +146,8 @@ class Scanner:
             case "&": self.addToken(TokenType.AMPERSAND)
             case "|": self.addToken(TokenType.BAR)
             case "^": self.addToken(TokenType.CARROT)
+            case "?": self.addToken(TokenType.QUESTION)
+            case ":": self.addToken(TokenType.COLON)
 
             case "!" if self.match("="): self.addToken(TokenType.BANG_EQUAL)
             case "!":                    self.addToken(TokenType.BANG)

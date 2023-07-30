@@ -1,0 +1,25 @@
+// Test ternary operators
+
+print true ? "pass" : "fail";
+
+print true ? "pass" : false ? "fail" : "fail";
+
+print false ? "fail" : true ? "pass" : "fail";
+
+print false ? "fail" : false ? "fail" : "pass";
+
+print true  ? (true ? "pass" : "fail") : "fail";
+print false ? (true ? "fail" : "fail") : "pass";
+
+print false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      false ? "fail" :
+      "pass"; // :)
+
+// Parser error if uncommented:
+// print true ? true ? "err" : "err" : "err";

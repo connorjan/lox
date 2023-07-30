@@ -217,9 +217,9 @@ class Parser:
 
     def assignment(self) -> Expr.Expr:
         """
-        assignment := IDENTIFIER "=" assignment | logical_or
+        assignment := IDENTIFIER "=" assignment | ternary
         """
-        expr: Expr.Expr = self.logical_or()
+        expr: Expr.Expr = self.ternary()
 
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
@@ -230,6 +230,19 @@ class Parser:
                 return Expr.Assign(name, value)
 
             self.error(equals, "Invalid assignment target")
+
+        return expr
+
+    def ternary(self) -> Expr.Expr:
+        """
+        ternary := logical_or ( "?" logical_or ":" ternary )?
+        """
+        expr: Expr.Expr = self.logical_or()
+        if self.match(TokenType.QUESTION):
+            trueExpr: Expr.Expr = self.logical_or()
+            self.consume(TokenType.COLON, "Expected \":\" after ternary condition")
+            falseExpr: Expr.Expr = self.ternary()
+            return Expr.Ternary(expr, trueExpr, falseExpr)
 
         return expr
 
