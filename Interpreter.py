@@ -205,7 +205,7 @@ class Interpreter:
                 self.execute(stmt.increment)
 
     def visitFunctionStmt(self, stmt: Stmt.Function) -> None:
-        function: LoxFunction = LoxFunction(stmt)
+        function: LoxFunction = LoxFunction(stmt, self.environment)
         self.environment.define(stmt.name.lexeme, function)
         return None
 

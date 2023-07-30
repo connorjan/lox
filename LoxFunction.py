@@ -10,8 +10,9 @@ from LoxCallable import LoxCallable
 
 class LoxFunction(LoxCallable):
 
-    def __init__(self, declaration: Stmt.Function) -> None:
+    def __init__(self, declaration: Stmt.Function, closure: Environment) -> None:
         self.declaration: Stmt.Function = declaration
+        self.closure: Environment = closure
 
     def __str__(self) -> str:
         return f"<fun {self.declaration.name.lexeme}>"
@@ -20,7 +21,7 @@ class LoxFunction(LoxCallable):
         return len(self.declaration.params)
 
     def call(self, interpreter: Interpreter, arguments: list[any]) -> any:
-        environment = Environment(interpreter.errorManager, interpreter.globals)
+        environment = Environment(interpreter.errorManager, self.closure)
         for i, argument in enumerate(arguments):
             environment.define(self.declaration.params[i].lexeme, argument)
 
@@ -28,5 +29,3 @@ class LoxFunction(LoxCallable):
             interpreter.executeBlock(self.declaration.body, environment)
         except Return as ret:
             return ret.value
-
-        raise Exception("Unreachable")
