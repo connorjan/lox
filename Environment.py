@@ -4,7 +4,7 @@ from Token import Token
 
 class Environment:
 
-    def __init__(self, errorManager: ErrorManager, enclosing: Environment|None = None) -> None:
+    def __init__(self, errorManager: ErrorManager, enclosing: Environment|None) -> None:
         self.errorManager = errorManager
         self.values: dict[str, any] = {}
         self.enclosing = enclosing
@@ -16,11 +16,11 @@ class Environment:
         if name.lexeme in self.values:
             # If the variable is found in this environment
             return self.values[name.lexeme]
-       
+
         if self.enclosing is not None:
             # If this environment is enclosed by another, try the enclosing one
             return self.enclosing.get(name)
-        
+
         raise RuntimeError(name, f"Undefined variable: {name.lexeme}")
 
     def assign(self, name: Token, value: any) -> None:

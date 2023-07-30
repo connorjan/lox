@@ -70,14 +70,44 @@ class Parser:
 
     def declaration(self) -> Stmt.Stmt:
         """
-        declaration := varDeclaration | statement
+        declaration :=    funDeclaration
+                        | varDeclaration
+                        | statement
         """
         try:
-            if self.match(TokenType.VAR):
+            if self.match(TokenType.FUN):
+                return self.function("function")
+            elif self.match(TokenType.VAR):
                 return self.varDeclaration()
             return self.statement()
         except ParseError as e:
             self.synchronize()
+
+    def function(self, type: str) -> Stmt.Stmt:
+        """
+        funDeclaration := "fun" function
+        function := IDENTIFIER "(" parameters? ")" block
+        parameters := IDENTIFIER ( "," IDENTIFIER )*
+        """
+        name: Token = self.consume(TokenType.IDENTIFIER, f"Expected {type} name")
+        self.consume(TokenType.LEFT_PAREN, f"Expected opening \"(\" after {type} name")
+
+        parameters: list[Token] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) >= 255:
+                    self.error(self.peek(), f"Cannot exceed 255 {type} parameters")
+
+                parameters.append(self.consume(TokenType.IDENTIFIER, "Expected valid parameter name"))
+
+                if not self.match(TokenType.COMMA):
+                    break
+
+        self.consume(TokenType.RIGHT_PAREN, f"Expected closing \")\" for {type}")
+        self.consume(TokenType.LEFT_BRACE, f"Expected opening \"{{\" for {type} body")
+
+        body: list[Stmt.Stmt] = self.block()
+        return Stmt.Function(name, parameters, body)
 
     def varDeclaration(self) -> Stmt.Stmt:
         """

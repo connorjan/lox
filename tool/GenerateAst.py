@@ -2,6 +2,7 @@
 
 import argparse
 import pathlib
+import sys
 
 def defineAst(outputDir: str, baseName: str, imports: str, types: list[str]) -> None:
     path: str = pathlib.Path(outputDir) / f"{baseName}.py"
@@ -60,6 +61,7 @@ def main(args) -> int:
             ["Control",    "control: Token"],
             ["Expression", "expression: Expr"],
             ["For",        "condition: Expr", "initializer: Stmt", "increment: Stmt", "body: Stmt"],
+            ["Function",   "name: Token", "params: list[Token]", "body: list[Stmt]"],
             ["If",         "condition: Expr", "thenBranch: Stmt", "elseBranch: Stmt"],
             ["Print",      "expression: Expr"],
             ["Var",        "name: Token", "initializer: Expr"],
@@ -69,6 +71,6 @@ def main(args) -> int:
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Generates the expression classes for Lox")
-    ap.add_argument("output_dir", help="The output directory to place the generated AST class file")
+    ap.add_argument("output_dir", help="The output directory to place the generated AST class file", nargs="?", default=pathlib.Path())
     args = ap.parse_args()
     main(args)

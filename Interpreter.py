@@ -1,7 +1,8 @@
 import Expr
 import Stmt
 import Builtins
-import LoxCallable
+from LoxCallable import LoxCallable
+from LoxFunction import LoxFunction
 from ExecutionFlow import *
 from ErrorManager import *
 from Token import Token
@@ -12,7 +13,7 @@ class Interpreter:
 
     def __init__(self, errorManager: ErrorManager) -> None:
         self.errorManager: ErrorManager = errorManager
-        self.globals: Environment = Environment(self.errorManager)
+        self.globals: Environment = Environment(self.errorManager, None)
         self.environment = self.globals
 
         # Add builtin functions
@@ -137,7 +138,7 @@ class Interpreter:
         callee: any = self.evaluate(expr.callee)
         arguments: list[any] = [self.evaluate(arg) for arg in expr.arguments]
 
-        if not isinstance(callee, LoxCallable.LoxCallable):
+        if not isinstance(callee, LoxCallable):
             raise RuntimeError(expr.paren, "Did not find function or class")
         elif len(arguments) != callee.arity():
             raise RuntimeError(expr.paren, f"Expected {callee.arity()} arguments but got {len(arguments)}")
@@ -196,6 +197,11 @@ class Interpreter:
 
             if stmt.increment is not None:
                 self.execute(stmt.increment)
+
+    def visitFunctionStmt(self, stmt: Stmt.Function) -> None:
+        function: LoxFunction = LoxFunction(stmt)
+        self.environment.define(stmt.name.lexeme, function)
+        return None
 
     def visitIfStmt(self, stmt: Stmt.If) -> None:
         if self.isTruthy(self.evaluate(stmt.condition)):

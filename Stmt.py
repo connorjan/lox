@@ -38,6 +38,15 @@ class For(Stmt):
     def accept(self, visitor: any) -> any:
         return visitor.visitForStmt(self)
 
+class Function(Stmt):
+    def __init__(self, name: Token, params: list[Token], body: list[Stmt]):
+        self.name: Token = name
+        self.params: list[Token] = params
+        self.body: list[Stmt] = body
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitFunctionStmt(self)
+
 class If(Stmt):
     def __init__(self, condition: Expr, thenBranch: Stmt, elseBranch: Stmt):
         self.condition: Expr = condition

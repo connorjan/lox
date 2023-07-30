@@ -1,0 +1,15 @@
+fun sayHi(first) {
+    print "Hi, " + first + "!";
+}
+
+fun addThree(a,b,c) {
+    print str(a) + "+" + str(b) + "+" + str(c) + " = " + str(a+b+c);
+}
+
+sayHi("Joe");
+sayHi("Frank");
+sayHi("Chris");
+
+addThree(1,1,1);
+addThree(1,2,3);
+addThree(1,10,100);
