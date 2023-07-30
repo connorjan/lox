@@ -174,6 +174,12 @@ class Interpreter:
         else:
             raise Exception("Unreachable")
 
+    def visitReturnStmt(self, stmt: Stmt.Return) -> None:
+        value: any = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+        raise Return(value)
+
     def visitPrintStmt(self, stmt: Stmt.Print) -> None:
         value: any = self.evaluate(stmt.expression)
         print(self.stringify(value))

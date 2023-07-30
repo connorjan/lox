@@ -127,6 +127,7 @@ class Parser:
                         | forStatement
                         | ifStatement
                         | printStatement
+                        | returnStatement
                         | whileStatement
                         | block
         """
@@ -138,6 +139,8 @@ class Parser:
             return self.ifStatement()
         elif self.match(TokenType.PRINT):
             return self.printStatement()
+        elif self.match(TokenType.RETURN):
+            return self.returnStatement()
         elif self.match(TokenType.WHILE):
             return self.whileStatement()
         elif self.match(TokenType.LEFT_BRACE):
@@ -199,6 +202,17 @@ class Parser:
             elseBranch = self.statement()
 
         return Stmt.If(condition, thenBranch, elseBranch)
+
+    def returnStatement(self) -> Stmt.Return:
+        """
+        returnStatement := "return" expression? ";"
+        """
+        keyword: Token = self.previous()
+        value: Expr.Expr = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected \";\" after return expression")
+        return Stmt.Return(keyword, value)
 
     def whileStatement(self) -> Stmt.While:
         """

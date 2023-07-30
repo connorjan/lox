@@ -14,3 +14,7 @@ class Continue(Exception):
     def __init__(self, token: Token) -> None:
         self.token: Token = token
 
+class Return(Exception):
+
+    def __init__(self, value: any) -> None:
+        self.value: any = value

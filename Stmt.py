@@ -63,6 +63,14 @@ class Print(Stmt):
     def accept(self, visitor: any) -> any:
         return visitor.visitPrintStmt(self)
 
+class Return(Stmt):
+    def __init__(self, keyword: Token, value: Expr):
+        self.keyword: Token = keyword
+        self.value: Expr = value
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitReturnStmt(self)
+
 class Var(Stmt):
     def __init__(self, name: Token, initializer: Expr):
         self.name: Token = name

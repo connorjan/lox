@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from Interpreter import Interpreter
 
 import Stmt
+from ExecutionFlow import Return
 from Environment import Environment
 from LoxCallable import LoxCallable
 
@@ -22,5 +23,10 @@ class LoxFunction(LoxCallable):
         environment = Environment(interpreter.errorManager, interpreter.globals)
         for i, argument in enumerate(arguments):
             environment.define(self.declaration.params[i].lexeme, argument)
-        interpreter.executeBlock(self.declaration.body, environment)
-        return None
+
+        try:
+            interpreter.executeBlock(self.declaration.body, environment)
+        except Return as ret:
+            return ret.value
+
+        raise Exception("Unreachable")
