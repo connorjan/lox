@@ -42,6 +42,9 @@ class Interpreter:
     def visitLiteralExpr(self, expr: Expr.Literal) -> any:
         return expr.value
 
+    def visitStringExpr(self, expr: Expr.String) -> any:
+        return expr.value
+
     def visitVariableExpr(self, expr: Expr.Variable) -> any:
         return self.environment.get(expr.name)
 

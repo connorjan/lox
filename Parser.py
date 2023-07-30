@@ -440,8 +440,11 @@ class Parser:
         if self.match(TokenType.TRUE): return Expr.Literal(True)
         if self.match(TokenType.NIL): return Expr.Literal(None)
 
-        if self.match(TokenType.NUMBER, TokenType.STRING):
+        if self.match(TokenType.NUMBER):
             return Expr.Literal(self.previous().literal)
+
+        if self.match(TokenType.STRING):
+            return Expr.String(self.previous().literal)
 
         if self.match(TokenType.IDENTIFIER):
             return Expr.Variable(self.previous())

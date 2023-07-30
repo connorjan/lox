@@ -55,6 +55,13 @@ class Logical(Expr):
     def accept(self, visitor: any) -> any:
         return visitor.visitLogicalExpr(self)
 
+class String(Expr):
+    def __init__(self, value: str):
+        self.value: str = value
+
+    def accept(self, visitor: any) -> any:
+        return visitor.visitStringExpr(self)
+
 class Ternary(Expr):
     def __init__(self, condition: Expr, trueExpr: Expr, falseExpr: Expr):
         self.condition: Expr = condition
