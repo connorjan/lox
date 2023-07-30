@@ -114,7 +114,17 @@ class Scanner:
         if "." in num:
             self.addToken(TokenType.NUMBER, float(num))
         else:
-            self.addToken(TokenType.NUMBER, int(num,0))
+            self.addToken(TokenType.NUMBER, int(num,10))
+
+    def baseNumber(self) -> None:
+        # Consume the base
+        self.advance()
+
+        # Consume the rest of the number
+        while self.peek().isnumeric():
+            self.advance()
+
+        self.addToken(TokenType.NUMBER, int(self.source[self.start:self.current],0))
 
     def isalpha(self, c: str) -> bool:
         return c.isalpha() or c == "_"
@@ -181,6 +191,8 @@ class Scanner:
             case "\"":
                 self.string()
 
+            case "0" if self.peek() in ("b", "o", "x") and self.peekNext().isnumeric():
+                self.baseNumber()
             case x if x.isnumeric():
                 self.number()
 
