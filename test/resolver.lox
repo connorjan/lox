@@ -24,3 +24,16 @@ fun bad() {
 
 // Cannot return outside of a function
 return false;
+
+while (true) {
+    break;
+    continue;
+}
+
+for (;;) {
+    break;
+    continue;
+}
+
+break; // Error
+continue; // Error

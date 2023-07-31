@@ -76,6 +76,8 @@ class Resolver:
         self.endScope()
 
     def visitControlStmt(self, stmt: Stmt.Control) -> None:
+        if self.currentLoop == LoopType.NONE:
+            self.errorManager.parseError(stmt.control, f"Cannot use {stmt.control.lexeme} outside of a loop")
         return
 
     def visitExpressionStmt(self, stmt: Stmt.Expression) -> None:
@@ -87,6 +89,8 @@ class Resolver:
         self.resolveFunction(stmt, FunctionType.FUNCTION)
 
     def visitForStmt(self, stmt: Stmt.For) -> None:
+        enclosingLoop: LoopType = self.currentLoop
+        self.currentLoop = LoopType.FOR
         if stmt.initializer is not None:
             self.resolve(stmt.initializer)
         if stmt.condition is not None:
@@ -94,6 +98,7 @@ class Resolver:
         if stmt.increment is not None:
             self.resolve(stmt.increment)
         self.resolve(stmt.body)
+        self.currentLoop = enclosingLoop
 
     def visitIfStmt(self, stmt: Stmt.If) -> None:
         self.resolve(stmt.condition)
@@ -117,8 +122,11 @@ class Resolver:
         self.define(stmt.name)
 
     def visitWhileStmt(self, stmt: Stmt.While) -> None:
+        enclosingLoop: LoopType = self.currentLoop
+        self.currentLoop = LoopType.WHILE
         self.resolve(stmt.condition)
         self.resolve(stmt.body)
+        self.currentLoop = enclosingLoop
 
     # Expression visitors
 

@@ -252,7 +252,5 @@ class Interpreter:
         try:
             for stmt in statements:
                 self.execute(stmt)
-        except (Break, Continue) as control:
-            self.errorManager.runtimeError(RuntimeError(control.token, f"Cannot use {control.token.lexeme} outside of a loop"))
         except RuntimeError as error:
             self.errorManager.runtimeError(error)
