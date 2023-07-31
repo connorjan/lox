@@ -1,0 +1,26 @@
+
+// Can re-define variables at the global scope
+var x = 1;
+var x = 2;
+print(x);
+
+// Cannot in a function
+fun bad() {
+    var y = 1;
+    var y = 2; // Error
+    return nil;
+}
+
+// Cannot in a block
+{
+    var z = 1;
+    var z = 2; // Error
+}
+
+// Cannot read variable in its own initializer
+{
+    var x = x; // Error
+}
+
+// Cannot return outside of a function
+return false;

@@ -15,6 +15,7 @@ class Interpreter:
         self.errorManager: ErrorManager = errorManager
         self.globals: Environment = Environment(self.errorManager, None)
         self.environment = self.globals
+        self.locals: dict[Expr.Expr, int] = {}
 
         # Add builtin functions
         self.globals.define("clock", Builtins.Clock())
@@ -37,6 +38,16 @@ class Interpreter:
                 raise RuntimeError(operator, f"Operand must be one of the following types: {', '.join(str(t.__name__) for t in types)}")
         return
 
+    def resolve(self, expr: Expr.Expr, depth: int) -> None:
+        self.locals[expr] = depth
+
+    def lookUpVariable(self, expr: Expr.Variable) -> any:
+        distance: int|None = self.locals.get(expr, None)
+        if distance is not None:
+            return self.environment.getAt(expr.name.lexeme, distance)
+        else:
+            return self.globals.get(expr.name)
+
     # Expression visitors
 
     def visitLiteralExpr(self, expr: Expr.Literal) -> any:
@@ -46,7 +57,7 @@ class Interpreter:
         return expr.value
 
     def visitVariableExpr(self, expr: Expr.Variable) -> any:
-        return self.environment.get(expr.name)
+        return self.lookUpVariable(expr)
 
     def visitGroupingExpr(self, expr: Expr.Grouping) -> any:
         return self.evaluate(expr.expression)
@@ -149,7 +160,11 @@ class Interpreter:
 
     def visitAssignExpr(self, expr: Expr.Assign) -> any:
         value: any = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+        distance: int|None = self.locals.get(expr, None)
+        if distance is not None:
+            self.environment.assignAt(expr.name, distance, value)
+        else:
+            self.globals.assign(expr.name, value)
         return value
 
     # Statement visitors

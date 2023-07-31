@@ -11,7 +11,7 @@ from Token import Token
 from Scanner import Scanner
 from Parser import Parser
 from Interpreter import Interpreter
-from AstPrinter import AstPrinter
+from Resolver import Resolver
 
 class Lox:
 
@@ -20,16 +20,25 @@ class Lox:
         self.interpreter = Interpreter(self.errorManager)
 
     def run(self, source: str) -> None:
+        # Scan / lex the source input into a list of tokens
         scanner: Scanner = Scanner(self.errorManager, source)
         tokens: list[Token] = scanner.scanTokens()
+
+        # Convert the list of tokens into an AST
         parser: Parser = Parser(self.errorManager, tokens)
         statements: list[Stmt.Stmt] = parser.parse()
 
         if self.errorManager.hadError:
             return
 
-        # astPrinter = AstPrinter()
-        # print(astPrinter.print(expression))
+        # Pass over the AST and resolve refrences to variables
+        resolver: Resolver = Resolver(self.errorManager, self.interpreter)
+        resolver.resolve(statements)
+
+        if self.errorManager.hadError:
+            return
+
+        # Run the interpreter
         self.interpreter.interpret(statements)
 
     def runPrompt(self) -> None:
